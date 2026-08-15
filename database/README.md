@@ -1,6 +1,6 @@
 # CSCQC E-Store database
 
-The main schema is [`../e_storedb.sql`](../e_storedb.sql). It is designed for the MariaDB 10.4 server shown in the original phpMyAdmin export.
+The main schema is [`../e_storedb.sql`](../e_storedb.sql). It is designed for the MariaDB 10.4 server used by XAMPP.
 
 ## Import with phpMyAdmin
 
@@ -12,15 +12,15 @@ The main schema is [`../e_storedb.sql`](../e_storedb.sql). It is designed for th
 
 ## Tables
 
-- `users` — students, staff, and administrators
-- `categories` — product groupings such as uniforms and books
-- `products` — shared product information and base prices
-- `product_variants` — sizes, colors, and variant-specific prices
-- `inventory` — available, reserved, and reorder quantities
-- `reservations` — reservation headers and status history
-- `reservation_items` — products included in each reservation
-- `announcements` — College, SHS, JHS, and general announcements
-- `inventory_movements` — stock audit trail
+- `users` - students, staff, and administrators
+- `categories` - product groupings such as uniforms and books
+- `products` - shared product information and base prices
+- `product_variants` - sizes, colors, and variant-specific prices
+- `inventory` - available, reserved, and reorder quantities
+- `reservations` - reservation headers and status history
+- `reservation_items` - products included in each reservation
+- `announcements` - College, SHS, JHS, and general announcements
+- `inventory_movements` - stock audit trail
 
 ## Security requirements
 

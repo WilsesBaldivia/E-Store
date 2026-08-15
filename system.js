@@ -102,27 +102,6 @@
   }
 
   function setupForms() {
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) loginForm.addEventListener('submit', event => { event.preventDefault(); window.location.href = 'homepage.html'; });
-
-    const registerForm = document.getElementById('registerForm');
-    if (registerForm) registerForm.addEventListener('submit', event => {
-      event.preventDefault();
-      let registeredUsers = [];
-      try { registeredUsers = JSON.parse(localStorage.getItem('cscqcUsers')) || []; } catch (error) { registeredUsers = []; }
-      registeredUsers.push({
-        firstName: document.getElementById('firstName').value.trim(),
-        lastName: document.getElementById('lastName').value.trim(),
-        studentId: document.getElementById('regStudentId').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        level: document.getElementById('academicLevel').value,
-        registered: new Date().toLocaleDateString('en-PH', { month: 'short', day: '2-digit', year: 'numeric' }),
-        status: 'active'
-      });
-      localStorage.setItem('cscqcUsers', JSON.stringify(registeredUsers));
-      window.location.href = 'login.html';
-    });
-
     const checkoutForm = document.getElementById('checkoutForm');
     if (checkoutForm) checkoutForm.addEventListener('submit', event => {
       event.preventDefault();
