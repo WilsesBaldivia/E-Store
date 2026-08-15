@@ -44,7 +44,7 @@
     saveCart(cart);
     showToast(button.dataset.name + ' added to your cart');
     const original = button.textContent;
-    button.textContent = 'Added ✓';
+    button.textContent = 'Added ✅';
     window.setTimeout(() => { button.textContent = original; }, 1000);
   }
 
