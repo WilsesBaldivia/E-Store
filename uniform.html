@@ -7,18 +7,18 @@
   <link rel="stylesheet" href="homepage.css">
 </head>
 <body>
-  <button class="menu-toggle" type="button" aria-label="Open menu">🧭</button>
+  <button class="menu-toggle" type="button" aria-label="Open menu"><i class="bx bx-menu"></i></button>
   <div class="app-shell">
     <aside class="sidebar">
       <a class="side-brand" href="homepage.html"><span class="mini-seal">C</span><span>CSCQC<small>E-STORE</small></span></a>
       <nav class="side-nav">
-        <a href="homepage.html"><span>🏠</span> Home</a><p>SHOP</p>
-        <a class="active" href="uniform.html"><span>👕</span> Uniforms</a>
-        <a href="books.html"><span>📚</span> Books</a>
-        <a href="cart.html"><span>🛒</span> My Cart <b class="cart-badge" data-cart-count>0</b></a>
-        <p>ACCOUNT</p><a href="homepage.html#history"><span>📋</span> Reservations</a>
+        <a href="homepage.html"><span><i class="bx bx-home-alt"></i></span> Home</a><p>SHOP</p>
+        <a class="active" href="uniform.html"><span><i class="bx bx-t-shirt"></i></span> Uniforms</a>
+        <a href="books.html"><span><i class="bx bx-book-open"></i></span> Books</a>
+        <a href="cart.html"><span><i class="bx bx-cart"></i></span> My Cart <b class="cart-badge" data-cart-count>0</b></a>
+        <p>ACCOUNT</p><a href="homepage.html#history"><span><i class="bx bx-receipt"></i></span> Reservations</a>
       </nav>
-      <a class="logout-link" href="index.html"><span>🚪</span> Log out</a>
+      <a class="logout-link" href="index.html"><span><i class="bx bx-log-out"></i></span> Log out</a>
     </aside>
 
     <main class="app-main">
@@ -35,15 +35,15 @@
         </div>
         <div class="level-options">
           <button class="level-card college-level" type="button" data-uniform-choice="college">
-            <span class="level-number">01</span><span class="level-icon">🎓</span>
+            <span class="level-number">01</span><span class="level-icon"><i class="bx bx-graduation"></i></span>
             <span class="level-name">College</span><small>College Department</small><b>View uniforms →</b>
           </button>
           <button class="level-card jhs-level" type="button" data-uniform-choice="jhs">
-            <span class="level-number">02</span><span class="level-icon">📗</span>
+            <span class="level-number">02</span><span class="level-icon"><i class="bx bx-book-open"></i></span>
             <span class="level-name">Junior High School</span><small>Grades 7 to 10</small><b>View uniforms →</b>
           </button>
           <button class="level-card shs-level" type="button" data-uniform-choice="shs">
-            <span class="level-number">03</span><span class="level-icon">📘</span>
+            <span class="level-number">03</span><span class="level-icon"><i class="bx bx-school"></i></span>
             <span class="level-name">Senior High School</span><small>Grades 11 and 12</small><b>View uniforms →</b>
           </button>
         </div>
@@ -58,46 +58,46 @@
             <h2 id="selectedLevelTitle">College uniforms</h2>
             <p>Select the correct size before adding an item to your cart.</p>
           </div>
-          <div class="search-box">🔍 <input type="search" placeholder="Search uniforms" data-product-search></div>
+          <div class="search-box"><i class="bx bx-search"></i><input type="search" placeholder="Search uniforms" data-product-search></div>
         </div>
 
         <section class="product-grid">
           <article class="product-card" data-uniform-level="college" data-product-name="College Official Polo">
-            <div class="product-image forest"><span>👕</span><small>COLLEGE</small></div>
+            <div class="product-image forest"><span><i class="bx bx-t-shirt"></i></span><small>COLLEGE</small></div>
             <div class="product-info"><span class="category">COLLEGE UNIFORM</span><h3>College Official Polo</h3><p>White collared polo with the official embroidered college seal.</p><div class="product-options"><select aria-label="Select size"><option>Size: Small</option><option>Size: Medium</option><option>Size: Large</option><option>Size: XL</option></select></div><div class="product-bottom"><strong>₱380.00</strong><button class="add-cart" data-id="college-polo" data-name="College Official Polo" data-price="380">Add to cart</button></div></div>
           </article>
           <article class="product-card" data-uniform-level="college" data-product-name="College Blouse">
-            <div class="product-image cream"><span>👚</span><small>COLLEGE</small></div>
+            <div class="product-image cream"><span><i class="bx bx-t-shirt"></i></span><small>COLLEGE</small></div>
             <div class="product-info"><span class="category">COLLEGE UNIFORM</span><h3>College Blouse</h3><p>Official ladies' blouse with green piping and school patch.</p><div class="product-options"><select aria-label="Select size"><option>Size: Small</option><option>Size: Medium</option><option>Size: Large</option><option>Size: XL</option></select></div><div class="product-bottom"><strong>₱390.00</strong><button class="add-cart" data-id="college-blouse" data-name="College Blouse" data-price="390">Add to cart</button></div></div>
           </article>
           <article class="product-card" data-uniform-level="college" data-product-name="College Slacks">
-            <div class="product-image olive"><span>👖</span><small>COLLEGE</small></div>
+            <div class="product-image olive"><span><i class="bx bx-closet"></i></span><small>COLLEGE</small></div>
             <div class="product-info"><span class="category">COLLEGE UNIFORM</span><h3>College Slacks</h3><p>Classic-cut green college slacks with adjustable waist.</p><div class="product-options"><select aria-label="Select size"><option>Size: 28</option><option>Size: 30</option><option>Size: 32</option><option>Size: 34</option></select></div><div class="product-bottom"><strong>₱470.00</strong><button class="add-cart" data-id="college-slacks" data-name="College Slacks" data-price="470">Add to cart</button></div></div>
           </article>
 
           <article class="product-card" data-uniform-level="jhs" data-product-name="JHS Official Polo">
-            <div class="product-image forest"><span>👕</span><small>JHS</small></div>
+            <div class="product-image forest"><span><i class="bx bx-t-shirt"></i></span><small>JHS</small></div>
             <div class="product-info"><span class="category">JUNIOR HIGH SCHOOL</span><h3>JHS Official Polo</h3><p>Junior High School white polo with official CSCQC seal.</p><div class="product-options"><select aria-label="Select size"><option>Size: Small</option><option>Size: Medium</option><option>Size: Large</option><option>Size: XL</option></select></div><div class="product-bottom"><strong>₱350.00</strong><button class="add-cart" data-id="jhs-polo" data-name="JHS Official Polo" data-price="350">Add to cart</button></div></div>
           </article>
           <article class="product-card" data-uniform-level="jhs" data-product-name="JHS School Pants">
-            <div class="product-image olive"><span>👖</span><small>JHS</small></div>
+            <div class="product-image olive"><span><i class="bx bx-closet"></i></span><small>JHS</small></div>
             <div class="product-info"><span class="category">JUNIOR HIGH SCHOOL</span><h3>JHS School Pants</h3><p>Official Junior High School pants in CSCQC green.</p><div class="product-options"><select aria-label="Select size"><option>Size: 26</option><option>Size: 28</option><option>Size: 30</option><option>Size: 32</option></select></div><div class="product-bottom"><strong>₱430.00</strong><button class="add-cart" data-id="jhs-pants" data-name="JHS School Pants" data-price="430">Add to cart</button></div></div>
           </article>
           <article class="product-card" data-uniform-level="jhs" data-product-name="JHS PE Uniform">
-            <div class="product-image sage"><span>🎽</span><small>JHS</small></div>
+            <div class="product-image sage"><span><i class="bx bx-run"></i></span><small>JHS</small></div>
             <div class="product-info"><span class="category">JHS P.E. UNIFORM</span><h3>JHS PE Uniform</h3><p>Quick-dry shirt and jogging pants for physical education.</p><div class="product-options"><select aria-label="Select size"><option>Size: Small</option><option>Size: Medium</option><option>Size: Large</option><option>Size: XL</option></select></div><div class="product-bottom"><strong>₱520.00</strong><button class="add-cart" data-id="jhs-pe" data-name="JHS PE Uniform" data-price="520">Add to cart</button></div></div>
           </article>
 
           <article class="product-card" data-uniform-level="shs" data-product-name="SHS Official Polo">
-            <div class="product-image forest"><span>👕</span><small>SHS</small></div>
+            <div class="product-image forest"><span><i class="bx bx-t-shirt"></i></span><small>SHS</small></div>
             <div class="product-info"><span class="category">SENIOR HIGH SCHOOL</span><h3>SHS Official Polo</h3><p>Official Senior High School polo with department insignia.</p><div class="product-options"><select aria-label="Select size"><option>Size: Small</option><option>Size: Medium</option><option>Size: Large</option><option>Size: XL</option></select></div><div class="product-bottom"><strong>₱370.00</strong><button class="add-cart" data-id="shs-polo" data-name="SHS Official Polo" data-price="370">Add to cart</button></div></div>
           </article>
           <article class="product-card" data-uniform-level="shs" data-product-name="SHS School Skirt">
-            <div class="product-image cream"><span>👗</span><small>SHS</small></div>
+            <div class="product-image cream"><span><i class="bx bx-closet"></i></span><small>SHS</small></div>
             <div class="product-info"><span class="category">SENIOR HIGH SCHOOL</span><h3>SHS School Skirt</h3><p>Pleated school skirt in the official Senior High fabric.</p><div class="product-options"><select aria-label="Select size"><option>Size: Small</option><option>Size: Medium</option><option>Size: Large</option><option>Size: XL</option></select></div><div class="product-bottom"><strong>₱450.00</strong><button class="add-cart" data-id="shs-skirt" data-name="SHS School Skirt" data-price="450">Add to cart</button></div></div>
           </article>
           <article class="product-card" data-uniform-level="shs" data-product-name="SHS PE Uniform">
-            <div class="product-image sage"><span>🎽</span><small>SHS</small></div>
+            <div class="product-image sage"><span><i class="bx bx-run"></i></span><small>SHS</small></div>
             <div class="product-info"><span class="category">SHS P.E. UNIFORM</span><h3>SHS PE Uniform</h3><p>Comfortable athletic set for Senior High School activities.</p><div class="product-options"><select aria-label="Select size"><option>Size: Small</option><option>Size: Medium</option><option>Size: Large</option><option>Size: XL</option></select></div><div class="product-bottom"><strong>₱540.00</strong><button class="add-cart" data-id="shs-pe" data-name="SHS PE Uniform" data-price="540">Add to cart</button></div></div>
           </article>
         </section>

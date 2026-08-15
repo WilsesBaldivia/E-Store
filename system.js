@@ -44,12 +44,12 @@
     saveCart(cart);
     showToast(button.dataset.name + ' added to your cart');
     const original = button.textContent;
-    button.textContent = 'Added ✅';
+    button.textContent = 'Added';
     window.setTimeout(() => { button.textContent = original; }, 1000);
   }
 
   function cartIcon(item) {
-    return item.id.includes('shirt') || item.id.includes('uniform') || item.id.includes('pants') || item.id.includes('skirt') ? '👕' : '📘';
+    return item.id.includes('shirt') || item.id.includes('uniform') || item.id.includes('pants') || item.id.includes('skirt') ? 'bx-t-shirt' : 'bx-book-open';
   }
 
   function renderCart() {
@@ -57,10 +57,10 @@
     if (!container) return;
     const cart = getCart();
     if (!cart.length) {
-      container.innerHTML = '<div class="empty-cart"><span>🛒</span><h2>Your cart is empty</h2><p>Browse the store and add the supplies you need.</p><a class="checkout-button" href="uniform.html">Browse uniforms</a></div>';
+      container.innerHTML = '<div class="empty-cart"><span><i class="bx bx-cart"></i></span><h2>Your cart is empty</h2><p>Browse the store and add the supplies you need.</p><a class="checkout-button" href="uniform.html">Browse uniforms</a></div>';
     } else {
       container.innerHTML = cart.map(item => '<article class="cart-item" data-cart-id="' + safeText(item.id) + '">' +
-        '<div class="cart-item-icon">' + cartIcon(item) + '</div><div><h3>' + safeText(item.name) + '</h3><p>CSCQC official school item</p></div>' +
+        '<div class="cart-item-icon"><i class="bx ' + cartIcon(item) + '"></i></div><div><h3>' + safeText(item.name) + '</h3><p>CSCQC official school item</p></div>' +
         '<div class="quantity"><button type="button" data-change="-1" aria-label="Decrease quantity">−</button><span>' + item.quantity + '</span><button type="button" data-change="1" aria-label="Increase quantity">+</button></div>' +
         '<div class="cart-price"><strong>' + money(item.price * item.quantity) + '</strong><button class="remove-item" type="button">Remove</button></div></article>').join('');
     }
