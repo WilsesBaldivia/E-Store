@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Checkout | CSCQC E-Store</title><link rel="stylesheet" href="homepage.css"></head>
+<body>
+  <button class="menu-toggle" type="button" aria-label="Open menu">☰</button>
+  <div class="app-shell">
+    <aside class="sidebar"><a class="side-brand" href="homepage.html"><span class="mini-seal">C</span><span>CSCQC<small>E-STORE</small></span></a><nav class="side-nav"><a href="homepage.html"><span>⌂</span> Home</a><p>SHOP</p><a href="uniform.html"><span>♙</span> Uniforms</a><a href="books.html"><span>▤</span> Books</a><a class="active" href="cart.html"><span>▣</span> My Cart <b class="cart-badge" data-cart-count>0</b></a><p>ACCOUNT</p><a href="homepage.html#history"><span>↻</span> Reservations</a></nav><a class="logout-link" href="index.html"><span>↪</span> Log out</a></aside>
+    <main class="app-main">
+      <header class="topbar"><div><span class="breadcrumb">MY CART / CHECKOUT</span><h1>Complete reservation</h1></div><a class="back-link" href="cart.html">← Back to cart</a></header>
+      <div class="checkout-layout">
+        <form class="panel checkout-form" id="checkoutForm">
+          <div class="checkout-step"><b>1</b><div><span class="overline">STUDENT INFORMATION</span><h2>Claiming details</h2></div></div>
+          <div class="input-grid"><div><label for="claimName">Student name</label><input id="claimName" value="Shaina Faye Rivera" required></div><div><label for="claimId">Student ID</label><input id="claimId" value="2026-0413" required></div><div><label for="claimEmail">School email</label><input id="claimEmail" type="email" value="rivera.shaina@cscqc.edu.ph" required></div><div><label for="claimDate">Preferred claiming date</label><input id="claimDate" type="date" required></div></div>
+          <label for="notes">Order notes <small>(optional)</small></label><textarea id="notes" rows="4" placeholder="Add size details or other notes for the school staff"></textarea>
+          <label class="confirm-label"><input type="checkbox" required><span>I have reviewed the items and understand that this creates a reservation only. Payment will be collected on campus.</span></label>
+          <button class="checkout-button" type="submit">Place reservation →</button>
+        </form>
+        <aside class="panel summary-card checkout-summary"><span class="overline">ORDER SUMMARY</span><h2>Your items</h2><div id="checkoutItems"></div><dl><div class="summary-total"><dt>Total</dt><dd data-cart-total>₱0.00</dd></div></dl><p class="secure-note">A reservation reference will appear after you submit this form.</p></aside>
+      </div>
+      <footer class="app-footer">CSCQC E-Store · Student Portal <span>© <span data-year></span></span></footer>
+    </main>
+  </div>
+  <div class="modal-backdrop" id="successModal" hidden><div class="success-modal"><span class="success-check">✓</span><span class="overline">RESERVATION RECEIVED</span><h2>Your order has been reserved!</h2><p>Reference number</p><strong id="reservationNumber">CSC-0000</strong><small>Save this number and present it when claiming your order.</small><a class="checkout-button" href="homepage.html">Return to dashboard</a></div></div>
+  <script src="system.js"></script>
+</body></html>

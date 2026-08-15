@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Registration | CSCQC E-Store</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="auth-page">
+  <a class="brand auth-brand" href="index.html"><span class="brand-mark">C</span><span><strong>CSCQC</strong><small>E-STORE</small></span></a>
+  <main class="auth-layout">
+    <section class="auth-message">
+      <span class="eyebrow">Join the E-Store</span>
+      <h1>Create your student shopping account.</h1>
+      <p>Registration takes only a minute. Your database connection can be added later.</p>
+      <a href="index.html">← Return to the main page</a>
+    </section>
+    <section class="auth-card register-card">
+      <div class="auth-heading"><span>New student</span><h2>Register an account</h2><p>Complete the information below.</p></div>
+      <form id="registerForm">
+        <div class="input-pair"><div><label for="firstName">First name</label><input id="firstName" required></div><div><label for="lastName">Last name</label><input id="lastName" required></div></div>
+        <label for="regStudentId">Student ID</label><input id="regStudentId" placeholder="e.g. 2026-00123" required>
+        <label for="email">School email</label><input id="email" type="email" placeholder="student@cscqc.edu.ph" required>
+        <label for="academicLevel">Academic level</label><select id="academicLevel" required><option value="">Select academic level</option><option value="college">College</option><option value="shs">Senior High School</option><option value="jhs">Junior High School</option></select>
+        <label for="regPassword">Password</label><input id="regPassword" type="password" minlength="6" placeholder="At least 6 characters" required>
+        <label class="check-label agreement"><input type="checkbox" required> I confirm that the information provided is correct.</label>
+        <button class="primary-button full-button" type="submit">Create account</button>
+      </form>
+      <p class="auth-switch">Already registered? <a href="login.html">Log in</a></p>
+    </section>
+  </main>
+  <script src="system.js"></script>
+</body>
+</html>
