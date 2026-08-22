@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password` varchar(255) NOT NULL COMMENT 'Store only password_hash() output',
   `academic_level` enum('college','shs','jhs') DEFAULT NULL,
   `role` enum('student','staff','admin') NOT NULL DEFAULT 'student',
-  `status` enum('active','suspended') NOT NULL DEFAULT 'active',
+  `status` enum('pending','active','suspended') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
@@ -48,11 +48,14 @@ ALTER TABLE `users`
   MODIFY COLUMN `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   ADD COLUMN IF NOT EXISTS `student_id` varchar(30) DEFAULT NULL AFTER `id`,
   ADD COLUMN IF NOT EXISTS `academic_level` enum('college','shs','jhs') DEFAULT NULL AFTER `email`,
-  ADD COLUMN IF NOT EXISTS `status` enum('active','suspended') NOT NULL DEFAULT 'active' AFTER `role`,
+  ADD COLUMN IF NOT EXISTS `status` enum('pending','active','suspended') NOT NULL DEFAULT 'pending' AFTER `role`,
   ADD COLUMN IF NOT EXISTS `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER `created_at`;
 
 ALTER TABLE `users`
   CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+ALTER TABLE `users`
+  MODIFY COLUMN `status` enum('pending','active','suspended') NOT NULL DEFAULT 'pending';
 
 -- Replace the old non-unique email index with account-level uniqueness.
 ALTER TABLE `users` DROP INDEX IF EXISTS `email`;
