@@ -33,8 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if (!$user || !password_verify($password, $user['password'])) {
                     $errors[] = 'The student ID or password is incorrect.';
-                } elseif ($user['status'] === 'pending') {
-                    $errors[] = 'Your account is awaiting administrator verification.';
                 } elseif ($user['status'] !== 'active') {
                     $errors[] = 'Your account is suspended. Please contact the E-Store staff.';
                 } else {
@@ -80,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     $insert = db()->prepare(
                         "INSERT INTO users (student_id, first_name, last_name, email, password, academic_level, role, status)
-                         VALUES (:student_id, :first_name, :last_name, :email, :password, :academic_level, 'student', 'pending')"
+                         VALUES (:student_id, :first_name, :last_name, :email, :password, :academic_level, 'student', 'active')"
                     );
                     $insert->execute([
                         'student_id' => $form['student_id'],
@@ -90,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'password' => password_hash($password, PASSWORD_DEFAULT),
                         'academic_level' => $form['academic_level'],
                     ]);
-                    set_flash('success', 'Registration submitted. An administrator must verify your account before login.');
+                    set_flash('success', 'Registration successful. You can now log in.');
                     redirect('index.php?view=login');
                 }
             } catch (RuntimeException $exception) {
