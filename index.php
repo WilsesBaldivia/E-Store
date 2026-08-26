@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!filter_var($form['email'], FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Enter a valid school email address.';
         }
-        if (!in_array($form['academic_level'], ['college', 'shs', 'jhs'], true)) {
+        if (!in_array($form['academic_level'], ['elementary', 'college', 'shs', 'jhs'], true)) {
             $errors[] = 'Select your academic level.';
         }
         if (strlen($password) < 8 || $password !== $confirmation) {
@@ -104,11 +104,7 @@ if ($view === 'home') {
         http_response_code(500);
         exit('The landing page template is unavailable.');
     }
-    $template = str_replace(
-        ['href="index.css"', 'href="index.html"', 'href="login.php"', 'href="register.php"', 'href="admin/login.html"'],
-        ['href="assets/front.css"', 'href="index.php"', 'href="index.php?view=login"', 'href="index.php?view=register"', 'href="admin-login.php"'],
-        $template
-    );
+    $template = str_replace('href="index.css"', 'href="assets/front.css"', $template);
     if (current_user() && current_user()['role'] === 'student') {
         $template = str_replace('href="index.php?view=login">Log in', 'href="student.php">Student portal', $template);
     }
@@ -154,7 +150,7 @@ $flash = get_flash();
           <div class="input-pair"><div><label for="firstName">First name</label><input id="firstName" name="first_name" value="<?= h($form['first_name']) ?>" required></div><div><label for="lastName">Last name</label><input id="lastName" name="last_name" value="<?= h($form['last_name']) ?>" required></div></div>
           <label for="studentId">Student ID</label><input id="studentId" name="student_id" value="<?= h($form['student_id']) ?>" required>
           <label for="email">School email</label><input id="email" name="email" type="email" value="<?= h($form['email']) ?>" required>
-          <label for="level">Academic level</label><select id="level" name="academic_level" required><option value="">Select level</option><option value="college">College</option><option value="shs">Senior High School</option><option value="jhs">Junior High School</option></select>
+          <label for="level">Academic level</label><select id="level" name="academic_level" required><option value="">Select level</option><option value="elementary">Elementary</option><option value="jhs">Junior High School</option><option value="shs">Senior High School</option><option value="college">College</option></select>
           <div class="input-pair"><div><label for="newPassword">Password</label><input id="newPassword" name="password" type="password" minlength="8" required></div><div><label for="confirmPassword">Confirm password</label><input id="confirmPassword" name="password_confirmation" type="password" minlength="8" required></div></div>
           <button class="primary-button full-button" type="submit">Submit registration</button>
         </form>

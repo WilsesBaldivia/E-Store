@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `last_name` varchar(50) NOT NULL,
   `email` varchar(150) NOT NULL,
   `password` varchar(255) NOT NULL COMMENT 'Store only password_hash() output',
-  `academic_level` enum('college','shs','jhs') DEFAULT NULL,
+  `academic_level` enum('elementary','college','shs','jhs') DEFAULT NULL,
   `role` enum('student','staff','admin') NOT NULL DEFAULT 'student',
   `status` enum('active','suspended') NOT NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -47,7 +47,7 @@ ALTER TABLE `users`
   MODIFY COLUMN `role` enum('student','staff','admin') NOT NULL DEFAULT 'student',
   MODIFY COLUMN `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   ADD COLUMN IF NOT EXISTS `student_id` varchar(30) DEFAULT NULL AFTER `id`,
-  ADD COLUMN IF NOT EXISTS `academic_level` enum('college','shs','jhs') DEFAULT NULL AFTER `email`,
+  ADD COLUMN IF NOT EXISTS `academic_level` enum('elementary','college','shs','jhs') DEFAULT NULL AFTER `email`,
   ADD COLUMN IF NOT EXISTS `status` enum('active','suspended') NOT NULL DEFAULT 'active' AFTER `role`,
   ADD COLUMN IF NOT EXISTS `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER `created_at`;
 
@@ -57,6 +57,7 @@ ALTER TABLE `users`
 UPDATE `users` SET `status` = 'active' WHERE `status` = 'pending';
 
 ALTER TABLE `users`
+  MODIFY COLUMN `academic_level` enum('elementary','college','shs','jhs') DEFAULT NULL,
   MODIFY COLUMN `status` enum('active','suspended') NOT NULL DEFAULT 'active';
 
 -- Replace the old non-unique email index with account-level uniqueness.
@@ -89,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `sku` varchar(50) NOT NULL,
   `name` varchar(120) NOT NULL,
   `description` text DEFAULT NULL,
-  `academic_level` enum('all','college','shs','jhs') NOT NULL DEFAULT 'all',
+  `academic_level` enum('all','elementary','college','shs','jhs') NOT NULL DEFAULT 'all',
   `base_price` decimal(10,2) unsigned NOT NULL DEFAULT 0.00,
   `image_path` varchar(255) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
@@ -103,6 +104,9 @@ CREATE TABLE IF NOT EXISTS `products` (
     FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`)
     ON UPDATE CASCADE ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `products`
+  MODIFY COLUMN `academic_level` enum('all','elementary','college','shs','jhs') NOT NULL DEFAULT 'all';
 
 CREATE TABLE IF NOT EXISTS `product_variants` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
@@ -189,7 +193,7 @@ CREATE TABLE IF NOT EXISTS `announcements` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `title` varchar(160) NOT NULL,
   `content` text NOT NULL,
-  `academic_level` enum('all','college','shs','jhs') NOT NULL DEFAULT 'all',
+  `academic_level` enum('all','elementary','college','shs','jhs') NOT NULL DEFAULT 'all',
   `announcement_type` enum('general','stock','schedule','urgent') NOT NULL DEFAULT 'general',
   `created_by` int unsigned DEFAULT NULL,
   `published_at` datetime NOT NULL DEFAULT current_timestamp(),
@@ -204,6 +208,9 @@ CREATE TABLE IF NOT EXISTS `announcements` (
     FOREIGN KEY (`created_by`) REFERENCES `users` (`id`)
     ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE `announcements`
+  MODIFY COLUMN `academic_level` enum('all','elementary','college','shs','jhs') NOT NULL DEFAULT 'all';
 
 -- -----------------------------------------------------------------------------
 -- Inventory audit trail
@@ -241,5 +248,71 @@ INSERT INTO `categories` (`name`, `slug`, `description`) VALUES
 ON DUPLICATE KEY UPDATE
   `name` = VALUES(`name`),
   `description` = VALUES(`description`);
+
+-- Starter catalog. Image paths remain NULL until official photos are provided.
+INSERT INTO `products`
+  (`category_id`, `sku`, `name`, `description`, `academic_level`, `base_price`, `image_path`, `is_active`)
+VALUES
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-ELEM-REG', 'Elementary School Uniform', 'Official Elementary daily uniform set.', 'elementary', 620.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-JHS-REG', 'JHS School Uniform', 'Official Junior High School daily uniform set.', 'jhs', 650.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-REG', 'SHS School Uniform', 'Official Senior High School daily uniform set.', 'shs', 680.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-REG', 'College School Uniform', 'Official College department daily uniform set.', 'college', 720.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-ELEM-SET', 'Elementary P.E. Uniform', 'Official Elementary physical education uniform set.', 'elementary', 500.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-JHS-SET', 'JHS P.E. Uniform', 'Official Junior High School physical education uniform set.', 'jhs', 550.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-SHS-SET', 'SHS P.E. Uniform', 'Official Senior High School physical education uniform set.', 'shs', 580.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-COL-SET', 'College P.E. Uniform', 'Official College physical education uniform set.', 'college', 620.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-GENMATH', 'General Mathematics', 'Mathematics textbook and activity guide.', 'all', 520.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-EARTHSCI', 'Earth and Life Science', 'Illustrated lessons about Earth systems and living things.', 'all', 560.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-LIT21', '21st Century Literature', 'Contemporary Philippine and world literature learning material.', 'all', 480.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-UCSP', 'Understanding Culture, Society and Politics', 'Introduction to culture, society, governance, and citizenship.', 'all', 495.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-PHILO', 'Introduction to the Philosophy of the Human Person', 'Foundational concepts and activities in philosophy.', 'all', 510.00, NULL, 1)
+ON DUPLICATE KEY UPDATE
+  `category_id` = VALUES(`category_id`),
+  `name` = VALUES(`name`),
+  `description` = VALUES(`description`),
+  `academic_level` = VALUES(`academic_level`),
+  `base_price` = VALUES(`base_price`),
+  `is_active` = 1;
+
+-- Small to XL variants for regular and P.E. uniforms.
+INSERT INTO `product_variants`
+  (`product_id`, `variant_sku`, `size`, `color`, `price_override`, `is_active`)
+SELECT `id`, CONCAT(`sku`, '-S'), 'Small', NULL, NULL, 1 FROM `products`
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+UNION ALL
+SELECT `id`, CONCAT(`sku`, '-M'), 'Medium', NULL, NULL, 1 FROM `products`
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+UNION ALL
+SELECT `id`, CONCAT(`sku`, '-L'), 'Large', NULL, NULL, 1 FROM `products`
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+UNION ALL
+SELECT `id`, CONCAT(`sku`, '-XL'), 'XL', NULL, NULL, 1 FROM `products`
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ON DUPLICATE KEY UPDATE
+  `product_id` = VALUES(`product_id`),
+  `size` = VALUES(`size`),
+  `is_active` = 1;
+
+-- Books use a single standard variant until edition-specific variants are needed.
+INSERT INTO `product_variants`
+  (`product_id`, `variant_sku`, `size`, `color`, `price_override`, `is_active`)
+SELECT `id`, CONCAT(`sku`, '-STD'), 'Standard', NULL, NULL, 1 FROM `products`
+ WHERE `sku` IN ('BK-GENMATH','BK-EARTHSCI','BK-LIT21','BK-UCSP','BK-PHILO')
+ON DUPLICATE KEY UPDATE
+  `product_id` = VALUES(`product_id`),
+  `size` = VALUES(`size`),
+  `is_active` = 1;
+
+-- Initial stock is created once. Re-imports keep administrator stock changes.
+INSERT INTO `inventory` (`variant_id`, `stock_quantity`, `reserved_quantity`, `reorder_level`)
+SELECT `pv`.`id`, 20, 0, 5
+FROM `product_variants` `pv`
+JOIN `products` `p` ON `p`.`id` = `pv`.`product_id`
+WHERE `p`.`sku` IN (
+  'UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET',
+  'BK-GENMATH','BK-EARTHSCI','BK-LIT21','BK-UCSP','BK-PHILO'
+)
+ON DUPLICATE KEY UPDATE
+  `reorder_level` = VALUES(`reorder_level`);
 
 COMMIT;
