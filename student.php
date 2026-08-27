@@ -193,6 +193,15 @@ $catalogGroups = [
         'options' => [],
         'image_path' => null,
     ],
+    'typeb' => [
+        'name' => 'Type B Uniform',
+        'category' => 'College Uniform',
+        'description' => 'Official Type B uniform exclusively for College students.',
+        'icon' => 'bx-t-shirt',
+        'item_label' => 'Type B size',
+        'options' => [],
+        'image_path' => null,
+    ],
     'books' => [
         'name' => 'School Books',
         'category' => 'Learning Materials',
@@ -208,6 +217,7 @@ $catalogImageFiles = [
     'UNI-JHS-REG' => 'uniform-jhs-clean',
     'UNI-SHS-REG' => 'uniform-shs-clean',
     'UNI-COL-REG' => 'uniform-college',
+    'TYPEB-COL' => 'typeb-college',
     'PE-ELEM-SET' => 'pe-elementary',
     'PE-JHS-SET' => 'pe-jhs',
     'PE-SHS-SET' => 'pe-shs',
@@ -218,7 +228,11 @@ foreach ($productRows as $row) {
     if ($row['category_slug'] === 'books') {
         $groupKey = 'books';
     } elseif ($row['category_slug'] === 'uniforms') {
-        $groupKey = str_starts_with($row['sku'], 'PE-') || stripos($row['name'], 'P.E.') !== false ? 'pe' : 'uniform';
+        if (str_starts_with($row['sku'], 'TYPEB-')) {
+            $groupKey = 'typeb';
+        } else {
+            $groupKey = str_starts_with($row['sku'], 'PE-') || stripos($row['name'], 'P.E.') !== false ? 'pe' : 'uniform';
+        }
     } else {
         continue;
     }
@@ -304,12 +318,19 @@ if ($view === 'voucher' && isset($_GET['code'])) {
         <?php foreach ($catalogGroups as $groupKey => $group):
             $availableOptions = array_filter($group['options'], static fn (array $option): bool => $option['available'] > 0);
             $startingPrice = min(array_column($group['options'], 'price'));
+            $selectableLevels = ['elementary' => 'Elementary', 'jhs' => 'Junior High School', 'shs' => 'Senior High School', 'college' => 'College'];
+            $optionLevels = array_unique(array_column($group['options'], 'academic_level'));
+            if (!in_array('all', $optionLevels, true)) {
+                $selectableLevels = array_intersect_key($selectableLevels, array_flip($optionLevels));
+            }
+            $singleLevel = count($selectableLevels) === 1 ? array_key_first($selectableLevels) : null;
+            $levelBadge = implode(' · ', array_map(static fn (string $level): string => strtoupper(str_replace(['Junior High School', 'Senior High School'], ['JHS', 'SHS'], $level)), $selectableLevels));
         ?>
           <article class="product-card catalog-group-card">
             <div class="product-image <?= $groupKey === 'books' ? 'book-green' : '' ?>" data-catalog-image>
               <img data-product-photo src="<?= h($group['image_path']) ?>" alt="<?= h($group['name']) ?>" <?= $group['image_path'] ? '' : 'hidden' ?>>
               <i data-product-icon class="bx <?= h($group['icon']) ?>" <?= $group['image_path'] ? 'hidden' : '' ?>></i>
-              <small>ELEMENTARY · JHS · SHS · COLLEGE</small>
+              <small><?= h($levelBadge) ?></small>
             </div>
             <div class="product-info">
               <span class="category"><?= h(strtoupper($group['category'])) ?></span>
@@ -320,11 +341,8 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                 <input type="hidden" name="action" value="add_cart">
                 <label for="level-<?= h($groupKey) ?>">Academic level</label>
                 <select id="level-<?= h($groupKey) ?>" name="academic_level" data-level-select required>
-                  <option value="">Choose academic level</option>
-                  <option value="elementary">Elementary</option>
-                  <option value="jhs">Junior High School</option>
-                  <option value="shs">Senior High School</option>
-                  <option value="college">College</option>
+                  <?php if (!$singleLevel): ?><option value="">Choose academic level</option><?php endif; ?>
+                  <?php foreach ($selectableLevels as $levelValue => $levelName): ?><option value="<?= h($levelValue) ?>" <?= $singleLevel === $levelValue ? 'selected' : '' ?>><?= h($levelName) ?></option><?php endforeach; ?>
                 </select>
                 <label for="variant-<?= h($groupKey) ?>"><?= h($group['item_label']) ?></label>
                 <select id="variant-<?= h($groupKey) ?>" name="variant_id" data-item-select required>
@@ -366,6 +384,6 @@ if ($view === 'voucher' && isset($_GET['code'])) {
     <?php else: ?>
       <?php if (!$voucher): ?><section class="panel section-card empty-state">Voucher not found.</section><?php else: ?><section class="voucher panel"><div class="voucher-head"><span class="mini-seal">C</span><div><span class="overline">DIGITAL ORDER RESERVATION VOUCHER</span><h2>CSCQC E-Store</h2></div><button type="button" class="secondary-button no-print" onclick="window.print()">Print voucher</button></div><div class="voucher-code"><?= h($voucher['reservation_code']) ?></div><dl><div><dt>Student</dt><dd><?= h($fullName) ?></dd></div><div><dt>Student ID</dt><dd><?= h($user['student_id']) ?></dd></div><div><dt>Claiming date</dt><dd><?= h(date('M d, Y', strtotime($voucher['preferred_claim_date']))) ?></dd></div><div><dt>Status</dt><dd><?= h(ucwords($voucher['status'])) ?></dd></div></dl><h3>Reserved items</h3><ul><?php foreach (explode('||', (string) $voucher['items']) as $item): ?><li><?= h($item) ?></li><?php endforeach; ?></ul><div class="voucher-total">Total payable on campus: <strong>&#8369;<?= number_format((float) $voucher['total_amount'], 2) ?></strong></div><p>Present this voucher and your CSCQC student ID when claiming your order.</p></section><?php endif; ?>
     <?php endif; ?>
-    <footer class="app-footer">CSCQC E-Store · Capstone System <span>&copy; <?= date('Y') ?></span></footer>
+
   </main>
 </div><script src="assets/front.js?v=<?= (int) filemtime(__DIR__ . '/assets/front.js') ?>"></script></body></html>

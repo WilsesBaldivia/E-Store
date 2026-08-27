@@ -257,6 +257,7 @@ VALUES
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-JHS-REG', 'JHS School Uniform', 'Official Junior High School daily uniform set.', 'jhs', 650.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-REG', 'SHS School Uniform', 'Official Senior High School daily uniform set.', 'shs', 680.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-REG', 'College School Uniform', 'Official College department daily uniform set.', 'college', 720.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL', 'College Type B Uniform', 'Official alternative Type B uniform for College students.', 'college', 720.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-ELEM-SET', 'Elementary P.E. Uniform', 'Official Elementary physical education uniform set.', 'elementary', 500.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-JHS-SET', 'JHS P.E. Uniform', 'Official Junior High School physical education uniform set.', 'jhs', 550.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-SHS-SET', 'SHS P.E. Uniform', 'Official Senior High School physical education uniform set.', 'shs', 580.00, NULL, 1),
@@ -278,16 +279,16 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO `product_variants`
   (`product_id`, `variant_sku`, `size`, `color`, `price_override`, `is_active`)
 SELECT `id`, CONCAT(`sku`, '-S'), 'Small', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','TYPEB-COL','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-M'), 'Medium', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','TYPEB-COL','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-L'), 'Large', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','TYPEB-COL','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-XL'), 'XL', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','TYPEB-COL','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 ON DUPLICATE KEY UPDATE
   `product_id` = VALUES(`product_id`),
   `size` = VALUES(`size`),
@@ -309,7 +310,7 @@ SELECT `pv`.`id`, 20, 0, 5
 FROM `product_variants` `pv`
 JOIN `products` `p` ON `p`.`id` = `pv`.`product_id`
 WHERE `p`.`sku` IN (
-  'UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET',
+  'UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','TYPEB-COL','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET',
   'BK-GENMATH','BK-EARTHSCI','BK-LIT21','BK-UCSP','BK-PHILO'
 )
 ON DUPLICATE KEY UPDATE

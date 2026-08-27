@@ -5,6 +5,7 @@ Automatic uniform filenames:
 - uniform-jhs-clean
 - uniform-shs-clean
 - uniform-college
+- typeb-college
 - pe-elementary
 - pe-jhs
 - pe-shs
