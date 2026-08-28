@@ -1,0 +1,29 @@
+COLLEGE REGULAR UNIFORM - DEPARTMENT NAME GUIDE
+================================================
+
+The five College regular-uniform photos are connected to the School Uniform
+card. A Department selector appears only after College is selected.
+
+Current mapping:
+
+01  UNI-COL-REG  uniform-college-department-01.jpg        Department 01 (Rename Me)
+02  UNI-COL-02   uniform-college-department-02-clean.png  Department 02 (Rename Me)
+03  UNI-COL-03   uniform-college-department-03-clean.png  Department 03 (Rename Me)
+04  UNI-COL-04   uniform-college-department-04.jpg        Department 04 (Rename Me)
+05  UNI-COL-05   uniform-college-department-05.jpg        Department 05 (Rename Me)
+
+HOW TO CHANGE A DEPARTMENT NAME
+-------------------------------
+
+1. Open e_storedb.sql.
+2. Search for the product SKU, for example UNI-COL-02.
+3. Change only the product name after "College School Uniform -".
+   Example:
+   College School Uniform - Department 02 (Rename Me)
+   becomes:
+   College School Uniform - Nursing
+4. Import e_storedb.sql again in phpMyAdmin. The existing product will update
+   without creating a duplicate.
+
+The PHP 720.00 price and stock of 20 per size are starter values that the
+administrator can update later.

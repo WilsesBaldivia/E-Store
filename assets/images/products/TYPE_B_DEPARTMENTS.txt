@@ -1,0 +1,34 @@
+TYPE B COLLEGE POLO - DEPARTMENT NAME GUIDE
+===========================================
+
+Five polo photos are currently connected to the student store. Photos 01, 04,
+05, 07, and 10 are archived and are not shown to students.
+
+Current mapping:
+
+01  typeb-department-01.jpg  ARCHIVED - not shown
+02  typeb-department-02-clean.png  Tourism Management
+03  typeb-department-03-clean.png  Information Technology
+04  typeb-department-04.jpg  ARCHIVED - not shown
+05  typeb-department-05.jpg  ARCHIVED - not shown
+06  typeb-department-06-clean.png  Education
+07  typeb-department-07.jpg  ARCHIVED - not shown
+08  typeb-department-08-clean.png  Criminology
+09  typeb-department-09-clean.png  Business Administration
+10  typeb-department-10.jpg  ARCHIVED - not shown
+
+HOW TO CHANGE A DEPARTMENT NAME
+-------------------------------
+
+1. Open e_storedb.sql.
+2. Search for the product SKU, for example TYPEB-COL-08.
+3. Change only the product name after "College Type B -".
+   Example:
+   College Type B - Criminology
+   becomes:
+   College Type B - College of Criminology
+4. Import e_storedb.sql again in phpMyAdmin. The existing product will be
+   updated; it will not create a duplicate.
+
+All active Type B products are College-only. The current price (PHP 720.00) and
+stock (20 per size) are starter values that the administrator can update later.

@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('[data-catalog-form]').forEach((form) => {
     const levelSelect = form.querySelector('[data-level-select]');
+    const departmentSelect = form.querySelector('[data-department-select]');
+    const departmentField = form.querySelector('[data-department-field]');
     const itemSelect = form.querySelector('[data-item-select]');
     const price = form.querySelector('[data-product-price]');
     const addButton = form.querySelector('.add-cart');
@@ -14,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const options = Array.from(itemSelect.querySelectorAll('option[data-level]')).map((option) => ({
       value: option.value,
       level: option.dataset.level,
+      department: option.dataset.department || '',
       price: option.dataset.price,
       available: Number(option.dataset.available || 0),
       image: option.dataset.image || '',
@@ -23,10 +26,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const showImage = (source) => {
       if (!photo || !icon) return;
       if (source) {
+        const revealPhoto = () => {
+          photo.hidden = false;
+          icon.hidden = true;
+        };
+        photo.hidden = true;
+        icon.hidden = false;
+        photo.onload = revealPhoto;
+        photo.onerror = () => {
+          photo.removeAttribute('src');
+          photo.hidden = true;
+          icon.hidden = false;
+        };
         photo.src = source;
-        photo.hidden = false;
-        icon.hidden = true;
+        if (photo.complete && photo.naturalWidth > 0) revealPhoto();
       } else {
+        photo.onload = null;
+        photo.onerror = null;
         photo.removeAttribute('src');
         photo.hidden = true;
         icon.hidden = false;
@@ -35,24 +51,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderItems = () => {
       const level = levelSelect.value;
-      const matching = options.filter((option) => option.level === 'all' || option.level === level);
-      itemSelect.replaceChildren(new Option(level ? 'Choose an item' : 'Choose an academic level first', ''));
+      const departmentLevel = departmentSelect?.dataset.departmentLevel || '';
+      const needsDepartment = Boolean(departmentSelect && (!departmentLevel || departmentLevel === level));
+      if (departmentSelect) {
+        if (!needsDepartment) departmentSelect.value = '';
+        departmentSelect.disabled = !needsDepartment;
+        departmentSelect.required = needsDepartment;
+      }
+      if (departmentField) departmentField.hidden = !needsDepartment;
+      const department = needsDepartment ? departmentSelect.value : '';
+      const levelMatching = options.filter((option) => option.level === 'all' || option.level === level);
+      const matching = levelMatching.filter((option) => !needsDepartment || option.department === department);
+      const awaitingDepartment = Boolean(needsDepartment && !department);
+      const placeholder = !level
+        ? 'Choose an academic level first'
+        : awaitingDepartment
+          ? 'Choose a department first'
+          : 'Choose a size or item';
+      itemSelect.replaceChildren(new Option(placeholder, ''));
       matching.forEach((item) => {
         const option = new Option(item.label, item.value, false, false);
         option.dataset.price = item.price;
         option.dataset.image = item.image;
+        option.dataset.department = item.department;
         option.disabled = item.available < 1;
         itemSelect.add(option);
       });
-      itemSelect.disabled = !level || matching.length === 0;
+      itemSelect.disabled = !level || awaitingDepartment || matching.length === 0;
       addButton.disabled = true;
-      addButton.textContent = matching.length || !level ? 'Select options' : 'Not available';
+      addButton.textContent = matching.length || !level || awaitingDepartment ? 'Select options' : 'Not available';
       price.textContent = 'Select an option';
       showImage(matching.find((item) => item.image)?.image || '');
     };
 
     levelSelect.addEventListener('input', renderItems);
     levelSelect.addEventListener('change', renderItems);
+    departmentSelect?.addEventListener('input', renderItems);
+    departmentSelect?.addEventListener('change', renderItems);
     itemSelect.addEventListener('change', () => {
       const selected = itemSelect.selectedOptions[0];
       const hasSelection = Boolean(selected?.value);
