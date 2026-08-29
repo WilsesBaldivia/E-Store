@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const imageFrame = form.closest('.catalog-group-card')?.querySelector('[data-catalog-image]');
     const photo = imageFrame?.querySelector('[data-product-photo]');
     const icon = imageFrame?.querySelector('[data-product-icon]');
+    const zoomButton = imageFrame?.querySelector('[data-product-zoom]');
     const options = Array.from(itemSelect.querySelectorAll('option[data-level]')).map((option) => ({
       value: option.value,
       level: option.dataset.level,
@@ -29,14 +30,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const revealPhoto = () => {
           photo.hidden = false;
           icon.hidden = true;
+          if (zoomButton) zoomButton.disabled = false;
         };
         photo.hidden = true;
         icon.hidden = false;
+        if (zoomButton) zoomButton.disabled = true;
         photo.onload = revealPhoto;
         photo.onerror = () => {
           photo.removeAttribute('src');
           photo.hidden = true;
           icon.hidden = false;
+          if (zoomButton) zoomButton.disabled = true;
         };
         photo.src = source;
         if (photo.complete && photo.naturalWidth > 0) revealPhoto();
@@ -46,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
         photo.removeAttribute('src');
         photo.hidden = true;
         icon.hidden = false;
+        if (zoomButton) zoomButton.disabled = true;
       }
     };
 
@@ -101,6 +106,66 @@ document.addEventListener('DOMContentLoaded', () => {
     window.setTimeout(renderItems, 0);
   });
 
+  const productZoomModal = document.querySelector('[data-product-zoom-modal]');
+  const productZoomImage = productZoomModal?.querySelector('[data-product-zoom-image]');
+  const productZoomTitle = productZoomModal?.querySelector('[data-product-zoom-title]');
+  const closeProductZoom = productZoomModal?.querySelector('[data-product-zoom-close]');
+  const zoomOutButton = productZoomModal?.querySelector('[data-zoom-out]');
+  const zoomResetButton = productZoomModal?.querySelector('[data-zoom-reset]');
+  const zoomInButton = productZoomModal?.querySelector('[data-zoom-in]');
+  let productZoomScale = 1;
+  let activeZoomTrigger = null;
+
+  const renderProductZoom = () => {
+    if (!productZoomImage || !zoomResetButton) return;
+    productZoomImage.style.transform = `scale(${productZoomScale})`;
+    zoomResetButton.textContent = `${Math.round(productZoomScale * 100)}%`;
+    if (zoomOutButton) zoomOutButton.disabled = productZoomScale <= 1;
+    if (zoomInButton) zoomInButton.disabled = productZoomScale >= 2.5;
+  };
+  const closeProductZoomModal = () => {
+    if (!productZoomModal) return;
+    productZoomModal.hidden = true;
+    activeZoomTrigger?.focus();
+  };
+
+  document.querySelectorAll('[data-product-zoom]').forEach((zoomTrigger) => {
+    zoomTrigger.addEventListener('click', () => {
+      const photo = zoomTrigger.closest('[data-catalog-image]')?.querySelector('[data-product-photo]');
+      if (!productZoomModal || !productZoomImage || !photo || photo.hidden || !photo.src) return;
+      activeZoomTrigger = zoomTrigger;
+      productZoomScale = 1;
+      productZoomImage.src = photo.currentSrc || photo.src;
+      productZoomImage.alt = photo.alt;
+      if (productZoomTitle) productZoomTitle.textContent = photo.alt || 'Product image';
+      productZoomModal.hidden = false;
+      renderProductZoom();
+      closeProductZoom?.focus();
+    });
+    zoomTrigger.closest('[data-catalog-image]')?.querySelector('[data-product-photo]')?.addEventListener('click', () => {
+      if (!zoomTrigger.disabled) zoomTrigger.click();
+    });
+  });
+  zoomOutButton?.addEventListener('click', () => {
+    productZoomScale = Math.max(1, productZoomScale - 0.25);
+    renderProductZoom();
+  });
+  zoomResetButton?.addEventListener('click', () => {
+    productZoomScale = 1;
+    renderProductZoom();
+  });
+  zoomInButton?.addEventListener('click', () => {
+    productZoomScale = Math.min(2.5, productZoomScale + 0.25);
+    renderProductZoom();
+  });
+  closeProductZoom?.addEventListener('click', closeProductZoomModal);
+  productZoomModal?.addEventListener('click', (event) => {
+    if (event.target === productZoomModal) closeProductZoomModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && productZoomModal && !productZoomModal.hidden) closeProductZoomModal();
+  });
+
   const removeModal = document.querySelector('[data-remove-modal]');
   const removeName = removeModal?.querySelector('[data-remove-name]');
   const cancelRemove = removeModal?.querySelector('[data-remove-cancel]');
@@ -135,5 +200,35 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && removeModal && !removeModal.hidden) closeRemoveModal();
+  });
+
+  const logoutForm = document.querySelector('[data-logout-form]');
+  const logoutModal = document.querySelector('[data-logout-modal]');
+  const cancelLogout = logoutModal?.querySelector('[data-logout-cancel]');
+  const confirmLogout = logoutModal?.querySelector('[data-logout-confirm]');
+
+  const closeLogoutModal = () => {
+    if (!logoutModal) return;
+    logoutModal.hidden = true;
+    logoutForm?.querySelector('button[type="submit"]')?.focus();
+  };
+
+  logoutForm?.addEventListener('submit', (event) => {
+    if (logoutForm.dataset.confirmed === 'true' || !logoutModal) return;
+    event.preventDefault();
+    logoutModal.hidden = false;
+    cancelLogout?.focus();
+  });
+  cancelLogout?.addEventListener('click', closeLogoutModal);
+  confirmLogout?.addEventListener('click', () => {
+    if (!logoutForm) return;
+    logoutForm.dataset.confirmed = 'true';
+    logoutForm.requestSubmit();
+  });
+  logoutModal?.addEventListener('click', (event) => {
+    if (event.target === logoutModal) closeLogoutModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && logoutModal && !logoutModal.hidden) closeLogoutModal();
   });
 });

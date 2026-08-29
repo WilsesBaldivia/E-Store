@@ -4,7 +4,8 @@ Automatic uniform filenames:
 - uniform-elementary
 - uniform-jhs-clean
 - uniform-shs-clean
-- College regular uniforms: uniform-college-department-01 through 05
+- active College regular uniforms: departments 01, 02, 03, and 05
+- archived College regular uniform: department 04 (not shown in the store)
 - active Type B photos: typeb-department-02, 03, 06, 08, and 09
 - archived Type B photos: 01, 04, 05, 07, and 10 (not shown in the store)
 - cleaned catalog versions: 02-clean, 03-clean, 06-clean, 08-clean, and 09-clean

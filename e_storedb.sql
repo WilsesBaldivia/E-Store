@@ -257,11 +257,10 @@ VALUES
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-ELEM-REG', 'Elementary School Uniform', 'Official Elementary daily uniform set.', 'elementary', 620.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-JHS-REG', 'JHS School Uniform', 'Official Junior High School daily uniform set.', 'jhs', 650.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-REG', 'SHS School Uniform', 'Official Senior High School daily uniform set.', 'shs', 680.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-REG', 'College School Uniform - Department 01 (Rename Me)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-01.jpg', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-02', 'College School Uniform - Department 02 (Rename Me)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-02-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-03', 'College School Uniform - Department 03 (Rename Me)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-03-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-04', 'College School Uniform - Department 04 (Rename Me)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-04.jpg', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-05', 'College School Uniform - Department 05 (Rename Me)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-05.jpg', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-REG', 'College School Uniform - IT, BA, EDUC', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-01.jpg', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-02', 'College School Uniform - Criminology', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-02-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-03', 'College School Uniform - Tourism (Girls)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-03-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-05', 'College School Uniform - Tourism (Boys)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-05.jpg', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-02', 'College Type B - Tourism Management', 'College Type B polo for Tourism Management.', 'college', 720.00, 'assets/images/products/typeb-department-02-clean.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-03', 'College Type B - Information Technology', 'College Type B polo for Information Technology.', 'college', 720.00, 'assets/images/products/typeb-department-03-clean.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-06', 'College Type B - Education', 'College Type B polo for Education.', 'college', 720.00, 'assets/images/products/typeb-department-06-clean.png', 1),
@@ -291,20 +290,25 @@ UPDATE `products`
 SET `is_active` = 0
 WHERE `sku` IN ('TYPEB-COL', 'TYPEB-COL-04', 'TYPEB-COL-05', 'TYPEB-COL-07', 'TYPEB-COL-10');
 
+-- The duplicate College Department 04 uniform was removed from the catalog.
+UPDATE `products`
+SET `is_active` = 0
+WHERE `sku` = 'UNI-COL-04';
+
 -- Small to XL variants for regular and P.E. uniforms.
 INSERT INTO `product_variants`
   (`product_id`, `variant_sku`, `size`, `color`, `price_override`, `is_active`)
 SELECT `id`, CONCAT(`sku`, '-S'), 'Small', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-04','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-M'), 'Medium', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-04','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-L'), 'Large', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-04','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-XL'), 'XL', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-04','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 ON DUPLICATE KEY UPDATE
   `product_id` = VALUES(`product_id`),
   `size` = VALUES(`size`),
@@ -326,7 +330,7 @@ SELECT `pv`.`id`, 20, 0, 5
 FROM `product_variants` `pv`
 JOIN `products` `p` ON `p`.`id` = `pv`.`product_id`
 WHERE `p`.`sku` IN (
-  'UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-04','UNI-COL-05',
+  'UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05',
   'TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09',
   'PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET',
   'BK-GENMATH','BK-EARTHSCI','BK-LIT21','BK-UCSP','BK-PHILO'
