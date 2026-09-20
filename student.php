@@ -174,7 +174,9 @@ $productRows = db()->query(
      JOIN product_variants pv ON pv.product_id = p.id
      JOIN inventory i ON i.variant_id = pv.id
      WHERE p.is_active = 1 AND pv.is_active = 1
-     ORDER BY FIELD(c.slug, 'uniforms', 'books'), FIELD(p.academic_level, 'elementary', 'jhs', 'shs', 'college'), p.name,
+     ORDER BY FIELD(c.slug, 'uniforms', 'books'), FIELD(p.academic_level, 'elementary', 'jhs', 'shs', 'college'),
+              CASE WHEN c.slug = 'books' THEN FIELD(p.sku, 'BK-K1-SET', 'BK-K2-SET', 'BK-G01-SET', 'BK-G02-SET', 'BK-G03-SET', 'BK-G04-SET', 'BK-G05-SET', 'BK-G06-SET', 'BK-G07-SET', 'BK-G08-SET', 'BK-G09-SET', 'BK-G10-SET', 'BK-G11-SET', 'BK-G12-SET') ELSE 0 END,
+              p.name,
               FIELD(pv.size, 'Small', 'Medium', 'Large', 'XL', 'Standard'), pv.size"
 )->fetchAll();
 
@@ -209,9 +211,9 @@ $catalogGroups = [
     'books' => [
         'name' => 'School Books',
         'category' => 'Learning Materials',
-        'description' => 'Choose your academic level, then select a book.',
+        'description' => 'Choose your academic level, then select a grade-level book set.',
         'icon' => 'bx-book-open',
-        'item_label' => 'Book title',
+        'item_label' => 'Book set',
         'options' => [],
         'image_path' => null,
     ],

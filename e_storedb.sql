@@ -270,11 +270,20 @@ VALUES
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-JHS-SET', 'JHS P.E. Uniform', 'Official Junior High School physical education uniform set.', 'jhs', 550.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-SHS-SET', 'SHS P.E. Uniform', 'Official Senior High School physical education uniform set.', 'shs', 580.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-COL-SET', 'College P.E. Uniform', 'Official College physical education uniform set.', 'college', 620.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-GENMATH', 'General Mathematics', 'Mathematics textbook and activity guide.', 'all', 520.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-EARTHSCI', 'Earth and Life Science', 'Illustrated lessons about Earth systems and living things.', 'all', 560.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-LIT21', '21st Century Literature', 'Contemporary Philippine and world literature learning material.', 'all', 480.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-UCSP', 'Understanding Culture, Society and Politics', 'Introduction to culture, society, governance, and citizenship.', 'all', 495.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-PHILO', 'Introduction to the Philosophy of the Human Person', 'Foundational concepts and activities in philosophy.', 'all', 510.00, NULL, 1)
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-K1-SET', 'Kinder 1 Book Set', 'Official Kinder 1 book set.', 'elementary', 2189.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-K2-SET', 'Kinder 2 Book Set', 'Official Kinder 2 book set.', 'elementary', 2189.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G01-SET', 'Grade 1 Book Set', 'Official Grade 1 book set.', 'elementary', 3765.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G02-SET', 'Grade 2 Book Set', 'Official Grade 2 book set.', 'elementary', 4015.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G03-SET', 'Grade 3 Book Set', 'Official Grade 3 book set.', 'elementary', 4765.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G04-SET', 'Grade 4 Book Set', 'Official Grade 4 book set.', 'elementary', 5265.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G05-SET', 'Grade 5 Book Set', 'Official Grade 5 book set.', 'elementary', 5292.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G06-SET', 'Grade 6 Book Set', 'Official Grade 6 book set.', 'elementary', 5292.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G07-SET', 'Grade 7 Book Set', 'Official Grade 7 book set.', 'jhs', 5691.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G08-SET', 'Grade 8 Book Set', 'Official Grade 8 book set.', 'jhs', 5691.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G09-SET', 'Grade 9 Book Set', 'Official Grade 9 book set.', 'jhs', 5768.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G10-SET', 'Grade 10 Book Set', 'Official Grade 10 book set.', 'jhs', 5768.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G11-SET', 'Grade 11 Book Set', 'Estimated price per set, per term.', 'shs', 2000.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G12-SET', 'Grade 12 Book Set', 'Estimated price per set, per term.', 'shs', 2000.00, NULL, 1)
 ON DUPLICATE KEY UPDATE
   `category_id` = VALUES(`category_id`),
   `name` = VALUES(`name`),
@@ -294,6 +303,12 @@ WHERE `sku` IN ('TYPEB-COL', 'TYPEB-COL-04', 'TYPEB-COL-05', 'TYPEB-COL-07', 'TY
 UPDATE `products`
 SET `is_active` = 0
 WHERE `sku` = 'UNI-COL-04';
+
+-- Replaced temporary subject-book placeholders with official grade-level sets.
+-- Rows remain inactive so existing reservation history stays intact.
+UPDATE `products`
+SET `is_active` = 0
+WHERE `sku` IN ('BK-GENMATH', 'BK-EARTHSCI', 'BK-LIT21', 'BK-UCSP', 'BK-PHILO');
 
 -- Small to XL variants for regular and P.E. uniforms.
 INSERT INTO `product_variants`
@@ -318,7 +333,7 @@ ON DUPLICATE KEY UPDATE
 INSERT INTO `product_variants`
   (`product_id`, `variant_sku`, `size`, `color`, `price_override`, `is_active`)
 SELECT `id`, CONCAT(`sku`, '-STD'), 'Standard', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('BK-GENMATH','BK-EARTHSCI','BK-LIT21','BK-UCSP','BK-PHILO')
+ WHERE `sku` IN ('BK-K1-SET','BK-K2-SET','BK-G01-SET','BK-G02-SET','BK-G03-SET','BK-G04-SET','BK-G05-SET','BK-G06-SET','BK-G07-SET','BK-G08-SET','BK-G09-SET','BK-G10-SET','BK-G11-SET','BK-G12-SET')
 ON DUPLICATE KEY UPDATE
   `product_id` = VALUES(`product_id`),
   `size` = VALUES(`size`),
@@ -333,7 +348,8 @@ WHERE `p`.`sku` IN (
   'UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05',
   'TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09',
   'PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET',
-  'BK-GENMATH','BK-EARTHSCI','BK-LIT21','BK-UCSP','BK-PHILO'
+  'BK-K1-SET','BK-K2-SET','BK-G01-SET','BK-G02-SET','BK-G03-SET','BK-G04-SET','BK-G05-SET','BK-G06-SET',
+  'BK-G07-SET','BK-G08-SET','BK-G09-SET','BK-G10-SET','BK-G11-SET','BK-G12-SET'
 )
 ON DUPLICATE KEY UPDATE
   `reorder_level` = VALUES(`reorder_level`);
