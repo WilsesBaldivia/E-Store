@@ -234,7 +234,7 @@ $catalogImageFiles = [
     'PE-ELEM-SET' => 'pe-elementary',
     'PE-JHS-SET' => 'pe-jhs',
     'PE-SHS-SET' => 'pe-shs',
-    'PE-COL-SET' => 'pe-college',
+    'PE-COL-SET' => 'pe-college-all-departments',
 ];
 
 foreach ($productRows as $row) {

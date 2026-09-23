@@ -269,7 +269,7 @@ VALUES
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-ELEM-SET', 'Elementary P.E. Uniform', 'Official Elementary physical education uniform set.', 'elementary', 500.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-JHS-SET', 'JHS P.E. Uniform', 'Official Junior High School physical education uniform set.', 'jhs', 550.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-SHS-SET', 'SHS P.E. Uniform', 'Official Senior High School physical education uniform set.', 'shs', 580.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-COL-SET', 'College P.E. Uniform', 'Official College physical education uniform set.', 'college', 620.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-COL-SET', 'College P.E. Uniform', 'Official College physical education uniform set for all College departments.', 'college', 620.00, 'assets/images/products/pe-college-all-departments.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-K1-SET', 'Kinder 1 Book Set', 'Official Kinder 1 book set.', 'elementary', 2189.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-K2-SET', 'Kinder 2 Book Set', 'Official Kinder 2 book set.', 'elementary', 2189.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G01-SET', 'Grade 1 Book Set', 'Official Grade 1 book set.', 'elementary', 3765.00, NULL, 1),
