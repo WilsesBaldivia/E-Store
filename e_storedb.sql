@@ -108,6 +108,23 @@ CREATE TABLE IF NOT EXISTS `products` (
 ALTER TABLE `products`
   MODIFY COLUMN `academic_level` enum('all','elementary','college','shs','jhs') NOT NULL DEFAULT 'all';
 
+CREATE TABLE IF NOT EXISTS `product_images` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT,
+  `product_id` int unsigned NOT NULL,
+  `image_path` varchar(255) NOT NULL,
+  `alt_text` varchar(180) NOT NULL,
+  `sort_order` smallint unsigned NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_product_images_path` (`product_id`,`image_path`),
+  KEY `idx_product_images_product_active` (`product_id`,`is_active`,`sort_order`),
+  CONSTRAINT `fk_product_images_product`
+    FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `product_variants` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `product_id` int unsigned NOT NULL,
@@ -292,6 +309,59 @@ ON DUPLICATE KEY UPDATE
   `base_price` = VALUES(`base_price`),
   `image_path` = COALESCE(VALUES(`image_path`), `image_path`),
   `is_active` = 1;
+
+-- Student-edition book covers only. Exact duplicates, teacher guides,
+-- instructional-resource copies, and evaluation/not-for-sale copies are omitted.
+INSERT INTO `product_images` (`product_id`, `image_path`, `alt_text`, `sort_order`, `is_active`) VALUES
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-K1-SET' LIMIT 1), 'assets/images/products/books/k1-mathematics.jpg', 'Kinder 1 Mathematics book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-K1-SET' LIMIT 1), 'assets/images/products/books/k1-as-jesus-did.jpg', 'Kinder 1 As Jesus Did book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-K1-SET' LIMIT 1), 'assets/images/products/books/k1-creative-expressions-arts.jpg', 'Kinder 1 Creative Expressions Arts book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-K2-SET' LIMIT 1), 'assets/images/products/books/k2-early-beginnings-science.jpg', 'Kinder 2 Early Beginnings Science book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-K2-SET' LIMIT 1), 'assets/images/products/books/k2-start-smart-mapeh.jpg', 'Kinder 2 Start Smart with MAPEH book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-K2-SET' LIMIT 1), 'assets/images/products/books/k2-start-smart-writing.jpg', 'Kinder 2 Start Smart with Writing book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-K2-SET' LIMIT 1), 'assets/images/products/books/k2-creative-expressions-arts.jpg', 'Kinder 2 Creative Expressions Arts book cover', 4, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G01-SET' LIMIT 1), 'assets/images/products/books/grade-01-real-life-mathematics.jpg', 'Grade 1 Real-Life Mathematics book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G02-SET' LIMIT 1), 'assets/images/products/books/grade-02-lahing-dakila.jpg', 'Grade 2 Lahing Dakila book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G02-SET' LIMIT 1), 'assets/images/products/books/grade-02-real-life-mathematics.jpg', 'Grade 2 Real-Life Mathematics book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G02-SET' LIMIT 1), 'assets/images/products/books/grade-02-dawani.jpg', 'Grade 2 Dawani book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G03-SET' LIMIT 1), 'assets/images/products/books/grade-03-lahing-dakila.jpg', 'Grade 3 Lahing Dakila book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G03-SET' LIMIT 1), 'assets/images/products/books/grade-03-real-life-mathematics.jpg', 'Grade 3 Real-Life Mathematics book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G03-SET' LIMIT 1), 'assets/images/products/books/grade-03-mapeh.jpg', 'Grade 3 MAPEH book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G04-SET' LIMIT 1), 'assets/images/products/books/grade-04-lahing-dakila.jpg', 'Grade 4 Lahing Dakila book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G04-SET' LIMIT 1), 'assets/images/products/books/grade-04-real-life-mathematics.jpg', 'Grade 4 Real-Life Mathematics book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G04-SET' LIMIT 1), 'assets/images/products/books/grade-04-hele.jpg', 'Grade 4 HELE book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G05-SET' LIMIT 1), 'assets/images/products/books/grade-05-lahing-dakila.jpg', 'Grade 5 Lahing Dakila book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G05-SET' LIMIT 1), 'assets/images/products/books/grade-05-real-life-mathematics.jpg', 'Grade 5 Real-Life Mathematics book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G05-SET' LIMIT 1), 'assets/images/products/books/grade-05-hele.jpg', 'Grade 5 HELE book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G05-SET' LIMIT 1), 'assets/images/products/books/grade-05-dawani.jpg', 'Grade 5 Dawani book cover', 4, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G06-SET' LIMIT 1), 'assets/images/products/books/grade-06-paano-magpakabuti.jpg', 'Grade 6 Paano Magpakabuti book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G06-SET' LIMIT 1), 'assets/images/products/books/grade-06-hele.jpg', 'Grade 6 HELE book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G06-SET' LIMIT 1), 'assets/images/products/books/grade-06-dawani.jpg', 'Grade 6 Dawani book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G07-SET' LIMIT 1), 'assets/images/products/books/grade-07-paano-magpakabuti.jpg', 'Grade 7 Paano Magpakabuti book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G07-SET' LIMIT 1), 'assets/images/products/books/grade-07-siglo.jpg', 'Grade 7 Siglo book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G07-SET' LIMIT 1), 'assets/images/products/books/grade-07-emath.jpg', 'Grade 7 E-Math book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G08-SET' LIMIT 1), 'assets/images/products/books/grade-08-mapeh-expedition.jpg', 'Grade 8 MAPEH Expedition book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G08-SET' LIMIT 1), 'assets/images/products/books/grade-08-siglo.jpg', 'Grade 8 Siglo book cover', 2, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G08-SET' LIMIT 1), 'assets/images/products/books/grade-08-conversations.jpg', 'Grade 8 Conversations book cover', 3, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G08-SET' LIMIT 1), 'assets/images/products/books/grade-08-talaghay.jpg', 'Grade 8 Talaghay book cover', 4, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G08-SET' LIMIT 1), 'assets/images/products/books/grade-08-emath.jpg', 'Grade 8 E-Math book cover', 5, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G09-SET' LIMIT 1), 'assets/images/products/books/grade-09-emath.jpg', 'Grade 9 E-Math book cover', 1, 1),
+  ((SELECT `id` FROM `products` WHERE `sku` = 'BK-G10-SET' LIMIT 1), 'assets/images/products/books/grade-10-emath.jpg', 'Grade 10 E-Math book cover', 1, 1)
+ON DUPLICATE KEY UPDATE
+  `alt_text` = VALUES(`alt_text`),
+  `sort_order` = VALUES(`sort_order`),
+  `is_active` = 1;
+
+-- Use the first approved student cover as each grade set's catalog image.
+UPDATE `products` `p`
+SET `p`.`image_path` = (
+  SELECT `pi`.`image_path`
+  FROM `product_images` `pi`
+  WHERE `pi`.`product_id` = `p`.`id` AND `pi`.`is_active` = 1
+  ORDER BY `pi`.`sort_order`, `pi`.`id`
+  LIMIT 1
+)
+WHERE `p`.`sku` IN ('BK-K1-SET','BK-K2-SET','BK-G01-SET','BK-G02-SET','BK-G03-SET','BK-G04-SET','BK-G05-SET','BK-G06-SET','BK-G07-SET','BK-G08-SET','BK-G09-SET','BK-G10-SET');
 
 -- These Type B photos were removed from the visible College catalog.
 -- Existing rows are kept inactive so old reservation records remain valid.

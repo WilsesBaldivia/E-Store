@@ -4,16 +4,22 @@ document.addEventListener('DOMContentLoaded', () => {
   button?.addEventListener('click', () => sidebar?.classList.toggle('open'));
 
   document.querySelectorAll('[data-catalog-form]').forEach((form) => {
+    const catalogCard = form.closest('.catalog-group-card');
     const levelSelect = form.querySelector('[data-level-select]');
     const departmentSelect = form.querySelector('[data-department-select]');
     const departmentField = form.querySelector('[data-department-field]');
     const itemSelect = form.querySelector('[data-item-select]');
     const price = form.querySelector('[data-product-price]');
     const addButton = form.querySelector('.add-cart');
-    const imageFrame = form.closest('.catalog-group-card')?.querySelector('[data-catalog-image]');
+    const imageFrame = catalogCard?.querySelector('[data-catalog-image]');
     const photo = imageFrame?.querySelector('[data-product-photo]');
     const icon = imageFrame?.querySelector('[data-product-icon]');
     const zoomButton = imageFrame?.querySelector('[data-product-zoom]');
+    const bookGallery = catalogCard?.querySelector('[data-book-gallery]');
+    const bookGalleryTitle = bookGallery?.querySelector('[data-book-gallery-title]');
+    const bookGalleryCount = bookGallery?.querySelector('[data-book-gallery-count]');
+    const bookGalleryGrid = bookGallery?.querySelector('[data-book-gallery-grid]');
+    const bookGalleryEmpty = bookGallery?.querySelector('[data-book-gallery-empty]');
     const options = Array.from(itemSelect.querySelectorAll('option[data-level]')).map((option) => ({
       value: option.value,
       level: option.dataset.level,
@@ -21,10 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
       price: option.dataset.price,
       available: Number(option.dataset.available || 0),
       image: option.dataset.image || '',
+      images: (() => {
+        try {
+          return JSON.parse(option.dataset.images || '[]');
+        } catch (error) {
+          return [];
+        }
+      })(),
       label: option.textContent.trim(),
     }));
 
-    const showImage = (source) => {
+    const showImage = (source, altText = '') => {
       if (!photo || !icon) return;
       if (source) {
         const revealPhoto = () => {
@@ -42,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
           icon.hidden = false;
           if (zoomButton) zoomButton.disabled = true;
         };
+        if (altText) photo.alt = altText;
         photo.src = source;
         if (photo.complete && photo.naturalWidth > 0) revealPhoto();
       } else {
@@ -52,6 +66,41 @@ document.addEventListener('DOMContentLoaded', () => {
         icon.hidden = false;
         if (zoomButton) zoomButton.disabled = true;
       }
+    };
+
+    const renderBookGallery = (selectedItem = null) => {
+      if (!bookGallery || !bookGalleryGrid || !bookGalleryEmpty) return;
+      bookGallery.hidden = !selectedItem;
+      bookGalleryGrid.replaceChildren();
+      if (!selectedItem) return;
+
+      const covers = Array.isArray(selectedItem.images) ? selectedItem.images : [];
+      if (bookGalleryTitle) bookGalleryTitle.textContent = `${selectedItem.department} covers`;
+      if (bookGalleryCount) bookGalleryCount.textContent = covers.length
+        ? `${covers.length} student ${covers.length === 1 ? 'cover' : 'covers'}`
+        : 'Photos coming soon';
+      bookGalleryEmpty.hidden = covers.length > 0;
+      bookGalleryGrid.hidden = covers.length === 0;
+
+      covers.forEach((cover, index) => {
+        const thumbnail = document.createElement('button');
+        thumbnail.type = 'button';
+        thumbnail.className = 'book-cover-thumbnail';
+        thumbnail.setAttribute('aria-label', `Show ${cover.alt || `cover ${index + 1}`}`);
+        thumbnail.setAttribute('aria-pressed', index === 0 ? 'true' : 'false');
+
+        const image = document.createElement('img');
+        image.src = cover.path;
+        image.alt = cover.alt || `${selectedItem.department} cover ${index + 1}`;
+        image.loading = 'lazy';
+        thumbnail.append(image);
+        thumbnail.addEventListener('click', () => {
+          bookGalleryGrid.querySelectorAll('.book-cover-thumbnail').forEach((button) => button.setAttribute('aria-pressed', 'false'));
+          thumbnail.setAttribute('aria-pressed', 'true');
+          showImage(cover.path, image.alt);
+        });
+        bookGalleryGrid.append(thumbnail);
+      });
     };
 
     const renderItems = () => {
@@ -78,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const option = new Option(item.label, item.value, false, false);
         option.dataset.price = item.price;
         option.dataset.image = item.image;
+        option.dataset.images = JSON.stringify(item.images || []);
         option.dataset.department = item.department;
         option.disabled = item.available < 1;
         itemSelect.add(option);
@@ -86,7 +136,12 @@ document.addEventListener('DOMContentLoaded', () => {
       addButton.disabled = true;
       addButton.textContent = matching.length || !level || awaitingDepartment ? 'Select options' : 'Not available';
       price.textContent = 'Select an option';
-      showImage(matching.find((item) => item.image)?.image || '');
+      if (bookGallery) {
+        renderBookGallery();
+        showImage('');
+      } else {
+        showImage(matching.find((item) => item.image)?.image || '');
+      }
     };
 
     levelSelect.addEventListener('input', renderItems);
@@ -99,7 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
       addButton.disabled = !hasSelection;
       addButton.textContent = hasSelection ? 'Add to cart' : 'Select options';
       price.textContent = hasSelection ? `₱${Number(selected.dataset.price).toFixed(2)}` : 'Select an option';
-      if (hasSelection) showImage(selected.dataset.image || '');
+      const selectedItem = hasSelection ? options.find((item) => item.value === selected.value) : null;
+      if (bookGallery) renderBookGallery(selectedItem);
+      if (selectedItem?.images?.length) {
+        showImage(selectedItem.images[0].path, selectedItem.images[0].alt || selectedItem.department);
+      } else if (hasSelection) {
+        showImage(selected.dataset.image || '', selectedItem?.department || '');
+      } else if (bookGallery) {
+        showImage('');
+      }
     });
     renderItems();
     window.addEventListener('pageshow', renderItems);

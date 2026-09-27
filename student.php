@@ -180,6 +180,22 @@ $productRows = db()->query(
               FIELD(pv.size, 'Small', 'Medium', 'Large', 'XL', 'Standard'), pv.size"
 )->fetchAll();
 
+$productImagesByProduct = [];
+$productImageRows = db()->query(
+    "SELECT pi.product_id, pi.image_path, pi.alt_text
+     FROM product_images pi
+     JOIN products p ON p.id = pi.product_id
+     JOIN categories c ON c.id = p.category_id
+     WHERE pi.is_active = 1 AND p.is_active = 1 AND c.slug = 'books'
+     ORDER BY pi.product_id, pi.sort_order, pi.id"
+)->fetchAll();
+foreach ($productImageRows as $productImageRow) {
+    $productImagesByProduct[(int) $productImageRow['product_id']][] = [
+        'path' => $productImageRow['image_path'],
+        'alt' => $productImageRow['alt_text'],
+    ];
+}
+
 $catalogGroups = [
     'uniform' => [
         'name' => 'School Uniform',
@@ -249,7 +265,8 @@ foreach ($productRows as $row) {
     } else {
         continue;
     }
-    $imagePath = $row['image_path'];
+    $productImages = $productImagesByProduct[(int) $row['product_id']] ?? [];
+    $imagePath = $productImages[0]['path'] ?? $row['image_path'];
     $automaticImageBase = $catalogImageFiles[$row['sku']] ?? null;
     if (!$imagePath && $automaticImageBase) {
         foreach (['jpg', 'jpeg', 'png', 'webp'] as $extension) {
@@ -272,6 +289,7 @@ foreach ($productRows as $row) {
         'price' => $row['price_override'] !== null ? (float) $row['price_override'] : (float) $row['base_price'],
         'available' => (int) $row['available'],
         'image_path' => $imagePath,
+        'images' => $productImages,
     ];
 }
 $catalogGroups = array_filter($catalogGroups, static fn (array $group): bool => (bool) $group['options']);
@@ -348,7 +366,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                 }
             }
             $departmentLevel = $groupKey === 'uniform' ? 'college' : '';
-            $initialImagePath = $groupKey === 'typeb' ? null : $group['image_path'];
+            $initialImagePath = in_array($groupKey, ['typeb', 'books'], true) ? null : $group['image_path'];
             $levelBadge = implode(' · ', array_map(static fn (string $level): string => strtoupper(str_replace(['Junior High School', 'Senior High School'], ['JHS', 'SHS'], $level)), $selectableLevels));
         ?>
           <article class="product-card catalog-group-card">
@@ -362,6 +380,13 @@ if ($view === 'voucher' && isset($_GET['code'])) {
               <span class="category"><?= h(strtoupper($group['category'])) ?></span>
               <h3><?= h($group['name']) ?></h3>
               <p><?= h($group['description']) ?></p>
+              <?php if ($groupKey === 'books'): ?>
+                <section class="book-cover-gallery" data-book-gallery hidden aria-live="polite">
+                  <header><strong data-book-gallery-title>Book covers</strong><span data-book-gallery-count></span></header>
+                  <div class="book-cover-thumbnails" data-book-gallery-grid></div>
+                  <p class="book-cover-empty" data-book-gallery-empty hidden>No student-edition cover photos are available for this grade yet.</p>
+                </section>
+              <?php endif; ?>
               <form method="post" class="product-form" data-catalog-form autocomplete="off">
                 <?= csrf_field() ?>
                 <input type="hidden" name="action" value="add_cart">
@@ -392,7 +417,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                       $optionLabel = $groupKey === 'books' ? $option['product_name'] : $option['size'];
                       $fallbackLevel = $option['academic_level'] === 'all' ? 'All levels' : ($levelLabels[$option['academic_level']] ?? ucfirst($option['academic_level']));
                   ?>
-                    <option value="<?= $option['id'] ?>" data-level="<?= h($option['academic_level']) ?>" data-department="<?= h($option['product_name']) ?>" data-price="<?= number_format($option['price'], 2, '.', '') ?>" data-available="<?= $option['available'] ?>" data-image="<?= h($option['image_path']) ?>" <?= $option['available'] < 1 ? 'disabled' : '' ?>>
+                    <option value="<?= $option['id'] ?>" data-level="<?= h($option['academic_level']) ?>" data-department="<?= h($option['product_name']) ?>" data-price="<?= number_format($option['price'], 2, '.', '') ?>" data-available="<?= $option['available'] ?>" data-image="<?= h($option['image_path']) ?>" data-images="<?= h(json_encode($option['images'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>" <?= $option['available'] < 1 ? 'disabled' : '' ?>>
                       <?= h($fallbackLevel) ?> — <?= h($optionLabel) ?><?= $option['color'] ? ' / ' . h($option['color']) : '' ?> — <?= $option['available'] ?> available
                     </option>
                   <?php endforeach; ?>
