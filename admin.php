@@ -20,8 +20,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif ($action === 'reservation_status') {
             $status = (string) ($_POST['status'] ?? 'pending');
             if (in_array($status, ['pending','processing','ready','claimed','cancelled'], true)) {
-                $update = db()->prepare('UPDATE reservations SET status = :status, claimed_at = IF(:status2 = \'claimed\', NOW(), claimed_at) WHERE id = :id');
-                $update->execute(['status' => $status, 'status2' => $status, 'id' => (int) $_POST['id']]);
+                $pdo = db();
+                $pdo->beginTransaction();
+                $reservationId = (int) ($_POST['id'] ?? 0);
+                $reservationQuery = $pdo->prepare('SELECT id, status FROM reservations WHERE id = :id FOR UPDATE');
+                $reservationQuery->execute(['id' => $reservationId]);
+                $reservation = $reservationQuery->fetch();
+                if (!$reservation) {
+                    throw new RuntimeException('Reservation not found.');
+                }
+
+                $currentStatus = (string) $reservation['status'];
+                if ($currentStatus !== $status) {
+                    $reservedStatuses = ['pending', 'processing', 'ready'];
+                    $wasReserved = in_array($currentStatus, $reservedStatuses, true);
+                    $willBeReserved = in_array($status, $reservedStatuses, true);
+
+                    if ($wasReserved !== $willBeReserved || $currentStatus === 'claimed' || $status === 'claimed') {
+                        $itemQuery = $pdo->prepare(
+                            'SELECT ri.variant_id, ri.quantity, i.stock_quantity, i.reserved_quantity
+                             FROM reservation_items ri
+                             JOIN inventory i ON i.variant_id = ri.variant_id
+                             WHERE ri.reservation_id = :reservation_id AND ri.variant_id IS NOT NULL
+                             FOR UPDATE'
+                        );
+                        $itemQuery->execute(['reservation_id' => $reservationId]);
+                        $inventoryUpdate = $pdo->prepare(
+                            'UPDATE inventory
+                             SET stock_quantity = :stock, reserved_quantity = :reserved
+                             WHERE variant_id = :variant_id'
+                        );
+                        $movementInsert = $pdo->prepare(
+                            'INSERT INTO inventory_movements
+                                (variant_id, reservation_id, performed_by, movement_type, quantity_change, quantity_after, notes)
+                             VALUES
+                                (:variant_id, :reservation_id, :performed_by, :movement_type, :quantity_change, :quantity_after, :notes)'
+                        );
+
+                        foreach ($itemQuery->fetchAll() as $item) {
+                            $quantity = (int) $item['quantity'];
+                            $stock = (int) $item['stock_quantity'];
+                            $reserved = (int) $item['reserved_quantity'];
+                            $newStock = $stock;
+                            $newReserved = $reserved;
+
+                            // Return the order to an unreserved, unclaimed baseline first.
+                            if ($wasReserved) {
+                                if ($newReserved < $quantity) {
+                                    throw new RuntimeException('Reserved inventory is out of sync for this order.');
+                                }
+                                $newReserved -= $quantity;
+                            } elseif ($currentStatus === 'claimed') {
+                                $newStock += $quantity;
+                            }
+
+                            // Apply the inventory effect of the new status.
+                            if ($willBeReserved) {
+                                if (($newStock - $newReserved) < $quantity) {
+                                    throw new RuntimeException('There is not enough available stock to reopen this reservation.');
+                                }
+                                $newReserved += $quantity;
+                            } elseif ($status === 'claimed') {
+                                if ($newStock < $quantity) {
+                                    throw new RuntimeException('There is not enough stock to claim this reservation.');
+                                }
+                                $newStock -= $quantity;
+                            }
+
+                            $inventoryUpdate->execute([
+                                'stock' => $newStock,
+                                'reserved' => $newReserved,
+                                'variant_id' => (int) $item['variant_id'],
+                            ]);
+
+                            $movementType = $status === 'claimed'
+                                ? 'claim'
+                                : ($willBeReserved ? 'reserve' : ($currentStatus === 'claimed' ? 'adjustment' : 'release'));
+                            $movementInsert->execute([
+                                'variant_id' => (int) $item['variant_id'],
+                                'reservation_id' => $reservationId,
+                                'performed_by' => (int) $staff['id'],
+                                'movement_type' => $movementType,
+                                'quantity_change' => $newStock - $stock,
+                                'quantity_after' => $newStock,
+                                'notes' => "Reservation status changed from {$currentStatus} to {$status}",
+                            ]);
+                        }
+                    }
+
+                    $update = $pdo->prepare(
+                        "UPDATE reservations
+                         SET status = :status,
+                             claimed_at = CASE WHEN :claimed_status = 'claimed' THEN COALESCE(claimed_at, NOW()) ELSE NULL END
+                         WHERE id = :id"
+                    );
+                    $update->execute(['status' => $status, 'claimed_status' => $status, 'id' => $reservationId]);
+                }
+                $pdo->commit();
             }
         } elseif ($action === 'category' && is_admin()) {
             $name = trim((string) $_POST['name']); $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $name));
@@ -119,6 +214,6 @@ $monthlyMaximum = max(1.0, ...array_column($monthlyRevenue, 'amount'));
 <section class="metric-grid report-metrics"><article><small>Claimed revenue</small><strong>&#8369;<?=number_format((float)$report['claimed_revenue'],2)?></strong><p>Completed reservations</p></article><article><small>Claimed orders</small><strong><?=(int)$report['claimed_count']?></strong><p>Successfully completed</p></article><article><small>Open reservations</small><strong><?=(int)$report['open_count']?></strong><p>Pending, processing or ready</p></article><article><small>Open order value</small><strong>&#8369;<?=number_format((float)$report['open_value'],2)?></strong><p>Not counted as revenue</p></article></section>
 <div class="report-columns"><section class="admin-panel"><h2>Revenue by day</h2><div class="table-wrap"><table><thead><tr><th>Date</th><th>Claimed orders</th><th>Revenue</th></tr></thead><tbody><?php if(!$dailyRevenue):?><tr><td colspan="3" class="empty-report">No claimed orders in this period.</td></tr><?php endif;?><?php foreach($dailyRevenue as $day):?><tr><td><?=h(date('M d, Y',strtotime($day['report_date'])))?></td><td><?=(int)$day['claimed_orders']?></td><td><strong>&#8369;<?=number_format((float)$day['revenue'],2)?></strong></td></tr><?php endforeach;?></tbody></table></div></section><section class="admin-panel"><h2>Recent claimed transactions</h2><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Student</th><th>Claimed</th><th>Amount</th></tr></thead><tbody><?php if(!$claimedReservations):?><tr><td colspan="4" class="empty-report">No transactions found.</td></tr><?php endif;?><?php foreach($claimedReservations as $claimed):?><tr><td><strong><?=h($claimed['reservation_code'])?></strong></td><td><?=h($claimed['student_name'])?></td><td><?=h(date('M d, Y',strtotime($claimed['claimed_date'])))?></td><td>&#8369;<?=number_format((float)$claimed['total_amount'],2)?></td></tr><?php endforeach;?></tbody></table></div></section></div>
 <?php elseif($view==='reservations'):?><section class="admin-panel"><h2>Student reservations</h2><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Student</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody><?php foreach($reservations as $row):?><tr><td><?=h($row['reservation_code'])?></td><td><strong><?=h($row['student_name'])?></strong><small><?=h($row['student_id'])?></small></td><td><?=h(date('M d, Y',strtotime($row['created_at'])))?></td><td>&#8369;<?=number_format((float)$row['total_amount'],2)?></td><td><span class="badge <?=h($row['status'])?>"><?=h(ucwords($row['status']))?></span></td><td><form method="post" class="inline-form"><?=csrf_field()?><input type="hidden" name="action" value="reservation_status"><input type="hidden" name="id" value="<?=$row['id']?>"><select name="status"><?php foreach(['pending','processing','ready','claimed','cancelled'] as $status):?><option <?=$row['status']===$status?'selected':''?>><?=$status?></option><?php endforeach;?></select><button>Save</button></form></td></tr><?php endforeach;?></tbody></table></div></section>
-<?php elseif($view==='inventory'):?><section class="admin-panel"><h2>Inventory</h2><div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Size</th><th>Reserved</th><th>Stock</th><th>Save</th></tr></thead><tbody><?php foreach($inventory as $row):?><tr><td><?=h($row['name'])?></td><td><?=h($row['sku'])?></td><td><?=h($row['size']?:'Standard')?></td><td><?=$row['reserved_quantity']?></td><td><form method="post" class="inline-form"><?=csrf_field()?><input type="hidden" name="action" value="stock"><input type="hidden" name="id" value="<?=$row['variant_id']?>"><input type="number" name="stock" min="<?=$row['reserved_quantity']?>" value="<?=$row['stock_quantity']?>"></td><td><button>Update</button></form></td></tr><?php endforeach;?></tbody></table></div></section>
+<?php elseif($view==='inventory'):?><section class="admin-panel"><h2>Inventory</h2><div class="table-wrap"><table><thead><tr><th>Product</th><th>SKU</th><th>Size</th><th>Reserved</th><th>Available</th><th>Total stock</th><th>Save</th></tr></thead><tbody><?php foreach($inventory as $row):?><tr><td><?=h($row['name'])?></td><td><?=h($row['sku'])?></td><td><?=h($row['size']?:'Standard')?></td><td><?=$row['reserved_quantity']?></td><td><?=max(0,(int)$row['stock_quantity']-(int)$row['reserved_quantity'])?></td><td><form method="post" class="inline-form"><?=csrf_field()?><input type="hidden" name="action" value="stock"><input type="hidden" name="id" value="<?=$row['variant_id']?>"><input type="number" name="stock" min="<?=$row['reserved_quantity']?>" value="<?=$row['stock_quantity']?>"></td><td><button>Update</button></form></td></tr><?php endforeach;?></tbody></table></div></section>
 <?php elseif($view==='users'):?><section class="admin-panel user-directory"><div class="user-directory-head"><div><span class="eyebrow">ACCOUNT DIRECTORY</span><h2>Users</h2><p>Manage student access and review registered customer accounts.</p></div><label class="user-search"><i class="bx bx-search"></i><input type="search" placeholder="Search users" data-user-search></label></div><div class="table-wrap"><table class="user-table"><thead><tr><th>Full name</th><th>Status</th><th>Email</th><th>Academic level</th><th>Reservations</th><th>Access</th></tr></thead><tbody><?php foreach($users as $row): $fullName=$row['first_name'].' '.$row['last_name']; $active=$row['status']==='active';?><tr data-user-row data-search="<?=h(strtolower($fullName.' '.$row['email'].' '.$row['student_id']))?>"><td><div class="directory-user"><span class="directory-avatar"><?=h(strtoupper(substr($row['first_name'],0,1).substr($row['last_name'],0,1)))?></span><div><strong><?=h($fullName)?></strong><small><?=h($row['student_id'])?></small></div></div></td><td><span class="account-status <?=$active?'active':'inactive'?>"><?=$active?'Active':'Not active'?></span></td><td><?=h($row['email'])?></td><td><?=h(strtoupper($row['academic_level']))?></td><td><?=(int)$row['orders']?></td><td><?php if(is_admin()):?><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="user_status"><input type="hidden" name="id" value="<?=$row['id']?>"><input type="hidden" name="status" value="<?=$active?'suspended':'active'?>"><button class="account-action <?=$active?'deactivate':'activate'?>"><?=$active?'Deactivate':'Activate'?></button></form><?php endif;?></td></tr><?php endforeach;?></tbody></table><p class="empty-report" data-user-empty hidden>No users match your search.</p></div></section>
 <?php else:?><div class="admin-columns"><section class="admin-panel"><h2>Add category</h2><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="category"><label>Category name</label><input name="name" required><button class="primary-button">Save category</button></form></section><section class="admin-panel"><h2>Add product and first variant</h2><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="product"><label>Category</label><select name="category_id"><?php foreach($categories as $cat):?><option value="<?=$cat['id']?>"><?=h($cat['name'])?></option><?php endforeach;?></select><label>SKU</label><input name="sku" required><label>Name</label><input name="name" required><label>Description</label><textarea name="description"></textarea><label>Academic level</label><select name="academic_level"><option value="all">All</option><option value="elementary">Elementary</option><option value="jhs">JHS</option><option value="shs">SHS</option><option value="college">College</option></select><label>Price</label><input name="price" type="number" min="0" step="0.01" required><label>Size/variant</label><input name="size" placeholder="Standard, Small, 32"><label>Initial stock</label><input name="stock" type="number" min="0" value="0"><button class="primary-button">Add product</button></form></section></div><?php endif;?><footer class="admin-footer">CSCQC E-Store · Administration &copy; <?=date('Y')?></footer></main></div><script src="assets/admin.js"></script></body></html>
