@@ -273,16 +273,16 @@ INSERT INTO `products`
 VALUES
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-ELEM-REG', 'Elementary School Uniform', 'Official Elementary daily uniform set.', 'elementary', 620.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-JHS-REG', 'JHS School Uniform', 'Official Junior High School daily uniform set.', 'jhs', 650.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-REG', 'SHS School Uniform', 'Official Senior High School daily uniform set.', 'shs', 680.00, NULL, 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-REG', 'College School Uniform - IT, BA, EDUC', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-01.jpg', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-02', 'College School Uniform - Criminology', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-02-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-03', 'College School Uniform - Tourism (Girls)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-03-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-05', 'College School Uniform - Tourism (Boys)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 720.00, 'assets/images/products/uniform-college-department-05.jpg', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-02', 'College Type B - Tourism Management', 'College Type B polo for Tourism Management.', 'college', 720.00, 'assets/images/products/typeb-department-02-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-03', 'College Type B - Information Technology', 'College Type B polo for Information Technology.', 'college', 720.00, 'assets/images/products/typeb-department-03-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-06', 'College Type B - Education', 'College Type B polo for Education.', 'college', 720.00, 'assets/images/products/typeb-department-06-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-08', 'College Type B - Criminology', 'College Type B polo for Criminology.', 'college', 720.00, 'assets/images/products/typeb-department-08-clean.png', 1),
-  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-09', 'College Type B - Business Administration', 'College Type B polo for Business Administration.', 'college', 720.00, 'assets/images/products/typeb-department-09-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-REG', 'SHS School Uniform', 'Official Senior High School daily uniform set.', 'shs', 1200.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-REG', 'College School Uniform - IT, BA, EDUC', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 1100.00, 'assets/images/products/uniform-college-department-01.jpg', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-02', 'College School Uniform - Criminology', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 2930.00, 'assets/images/products/uniform-college-department-02-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-03', 'College School Uniform - Tourism (Girls)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 1100.00, 'assets/images/products/uniform-college-department-03-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-05', 'College School Uniform - Tourism (Boys)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 1100.00, 'assets/images/products/uniform-college-department-05.jpg', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-02', 'College Type B - Tourism Management', 'College Type B polo for Tourism Management.', 'college', 500.00, 'assets/images/products/typeb-department-02-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-03', 'College Type B - Information Technology', 'College Type B polo for Information Technology.', 'college', 500.00, 'assets/images/products/typeb-department-03-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-06', 'College Type B - Education', 'College Type B polo for Education.', 'college', 500.00, 'assets/images/products/typeb-department-06-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-08', 'College Type B - Criminology', 'College Type B polo for Criminology.', 'college', 500.00, 'assets/images/products/typeb-department-08-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-09', 'College Type B - Business Administration', 'College Type B polo for Business Administration.', 'college', 500.00, 'assets/images/products/typeb-department-09-clean.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-ELEM-SET', 'Elementary P.E. Uniform', 'Official Elementary physical education uniform set.', 'elementary', 500.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-JHS-SET', 'JHS P.E. Uniform', 'Official Junior High School physical education uniform set.', 'jhs', 550.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-SHS-SET', 'SHS P.E. Uniform', 'Official Senior High School physical education uniform set.', 'shs', 580.00, NULL, 1),
@@ -398,6 +398,31 @@ ON DUPLICATE KEY UPDATE
   `product_id` = VALUES(`product_id`),
   `size` = VALUES(`size`),
   `is_active` = 1;
+
+-- Approved uniform pricing. College regular uniforms use an XL surcharge,
+-- while Criminology, SHS, and Type B use one price for every size.
+UPDATE `products`
+SET `base_price` = CASE
+  WHEN `sku` LIKE 'TYPEB-COL%' THEN 500.00
+  WHEN `sku` = 'UNI-COL-02' THEN 2930.00
+  WHEN `sku` = 'UNI-SHS-REG' THEN 1200.00
+  ELSE 1100.00
+END
+WHERE `sku` LIKE 'TYPEB-COL%'
+   OR `sku` LIKE 'UNI-COL-%'
+   OR `sku` = 'UNI-SHS-REG';
+
+UPDATE `product_variants` `pv`
+JOIN `products` `p` ON `p`.`id` = `pv`.`product_id`
+SET `pv`.`price_override` = CASE WHEN `pv`.`size` = 'XL' THEN 1200.00 ELSE NULL END
+WHERE `p`.`sku` LIKE 'UNI-COL-%' AND `p`.`sku` <> 'UNI-COL-02';
+
+UPDATE `product_variants` `pv`
+JOIN `products` `p` ON `p`.`id` = `pv`.`product_id`
+SET `pv`.`price_override` = NULL
+WHERE `p`.`sku` = 'UNI-COL-02'
+   OR `p`.`sku` = 'UNI-SHS-REG'
+   OR `p`.`sku` LIKE 'TYPEB-COL%';
 
 -- Books use a single standard variant until edition-specific variants are needed.
 INSERT INTO `product_variants`
