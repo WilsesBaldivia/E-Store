@@ -1,6 +1,6 @@
 -- CSCQC E-Store database schema
 -- Compatible with MariaDB 10.4+ / MySQL 8 where noted.
--- This script upgrades the original users table and creates the remaining tables.
+-- This script creates the application tables and seeds the product catalog.
 -- It does not insert student accounts or a default administrator password.
 -- Import it while the target database is selected. On Railway, select the
 -- database named by MYSQLDATABASE (normally `railway`) before importing.
@@ -32,36 +32,6 @@ CREATE TABLE IF NOT EXISTS `users` (
   KEY `idx_users_level` (`academic_level`),
   KEY `idx_users_role_status` (`role`,`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Safe upgrade steps for the legacy users table from the original export.
-ALTER TABLE `users`
-  MODIFY COLUMN `id` int unsigned NOT NULL AUTO_INCREMENT,
-  MODIFY COLUMN `first_name` varchar(50) NOT NULL,
-  MODIFY COLUMN `last_name` varchar(50) NOT NULL,
-  MODIFY COLUMN `email` varchar(150) NOT NULL,
-  MODIFY COLUMN `password` varchar(255) NOT NULL COMMENT 'Store only password_hash() output',
-  MODIFY COLUMN `role` enum('student','staff','admin') NOT NULL DEFAULT 'student',
-  MODIFY COLUMN `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  ADD COLUMN IF NOT EXISTS `student_id` varchar(30) DEFAULT NULL AFTER `id`,
-  ADD COLUMN IF NOT EXISTS `academic_level` enum('elementary','college','shs','jhs') DEFAULT NULL AFTER `email`,
-  ADD COLUMN IF NOT EXISTS `status` enum('active','suspended') NOT NULL DEFAULT 'active' AFTER `role`,
-  ADD COLUMN IF NOT EXISTS `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() AFTER `created_at`;
-
-ALTER TABLE `users`
-  CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
-UPDATE `users` SET `status` = 'active' WHERE `status` = 'pending';
-
-ALTER TABLE `users`
-  MODIFY COLUMN `academic_level` enum('elementary','college','shs','jhs') DEFAULT NULL,
-  MODIFY COLUMN `status` enum('active','suspended') NOT NULL DEFAULT 'active';
-
--- Replace the old non-unique email index with account-level uniqueness.
-ALTER TABLE `users` DROP INDEX IF EXISTS `email`;
-CREATE UNIQUE INDEX IF NOT EXISTS `uq_users_email` ON `users` (`email`);
-CREATE UNIQUE INDEX IF NOT EXISTS `uq_users_student_id` ON `users` (`student_id`);
-CREATE INDEX IF NOT EXISTS `idx_users_level` ON `users` (`academic_level`);
-CREATE INDEX IF NOT EXISTS `idx_users_role_status` ON `users` (`role`,`status`);
 
 -- -----------------------------------------------------------------------------
 -- Product catalog and inventory
