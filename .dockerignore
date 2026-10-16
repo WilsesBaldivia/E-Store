@@ -1,0 +1,11 @@
+.git
+.gitignore
+.agents
+.codex
+books
+docs
+database
+*.sql
+*.log
+.env
+.env.*

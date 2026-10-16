@@ -2,16 +2,12 @@
 -- Compatible with MariaDB 10.4+ / MySQL 8 where noted.
 -- This script upgrades the original users table and creates the remaining tables.
 -- It does not insert student accounts or a default administrator password.
+-- Import it while the target database is selected. On Railway, select the
+-- database named by MYSQLDATABASE (normally `railway`) before importing.
 
 SET SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO';
 SET time_zone = '+00:00';
 SET NAMES utf8mb4;
-
-CREATE DATABASE IF NOT EXISTS `e_storedb`
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE `e_storedb`;
 
 -- -----------------------------------------------------------------------------
 -- Users and authentication
