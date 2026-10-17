@@ -185,7 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const renderProductZoom = () => {
     if (!productZoomImage || !zoomResetButton) return;
-    productZoomImage.style.transform = `scale(${productZoomScale})`;
+    productZoomImage.style.width = `${productZoomScale * 100}%`;
+    productZoomImage.style.height = `${productZoomScale * 100}%`;
     zoomResetButton.textContent = `${Math.round(productZoomScale * 100)}%`;
     if (zoomOutButton) zoomOutButton.disabled = productZoomScale <= 1;
     if (zoomInButton) zoomInButton.disabled = productZoomScale >= 2.5;
@@ -193,6 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const closeProductZoomModal = () => {
     if (!productZoomModal) return;
     productZoomModal.hidden = true;
+    document.body.classList.remove('zoom-open');
     activeZoomTrigger?.focus();
   };
 
@@ -206,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
       productZoomImage.alt = photo.alt;
       if (productZoomTitle) productZoomTitle.textContent = photo.alt || 'Product image';
       productZoomModal.hidden = false;
+      document.body.classList.add('zoom-open');
       renderProductZoom();
       closeProductZoom?.focus();
     });
