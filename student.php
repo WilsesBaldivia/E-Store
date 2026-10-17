@@ -145,7 +145,7 @@ $levelLabels = ['elementary' => 'Elementary', 'jhs' => 'Junior High School', 'sh
 $fullName = trim($user['first_name'] . ' ' . $user['last_name']);
 
 $cartRows = [];
-if ($_SESSION['cart']) {
+if ($_SESSION['cart'] && in_array($view, ['cart', 'checkout'], true)) {
     $ids = array_map('intval', array_keys($_SESSION['cart']));
     $placeholders = implode(',', array_fill(0, count($ids), '?'));
     $cartQuery = db()->prepare(
@@ -166,6 +166,8 @@ $cartTotal = array_sum(array_map(static function (array $row): float {
     return $row['price'] * $row['quantity'];
 }, $cartRows));
 
+$catalogGroups = [];
+if ($view === 'shop') {
 $productRows = db()->query(
     "SELECT p.id AS product_id, p.sku, pv.id AS variant_id, pv.size, pv.color, p.name, p.description,
             p.academic_level, p.base_price, pv.price_override, p.image_path, c.name AS category, c.slug AS category_slug,
@@ -293,26 +295,34 @@ foreach ($productRows as $row) {
     ];
 }
 $catalogGroups = array_filter($catalogGroups, static fn (array $group): bool => (bool) $group['options']);
+}
 
-$reservationQuery = db()->prepare(
-    "SELECT r.*, GROUP_CONCAT(CONCAT(ri.product_name, ' x ', ri.quantity) ORDER BY ri.id SEPARATOR ', ') AS items
-     FROM reservations r LEFT JOIN reservation_items ri ON ri.reservation_id = r.id
-     WHERE r.user_id = :user_id GROUP BY r.id ORDER BY r.created_at DESC"
-);
-$reservationQuery->execute(['user_id' => $user['id']]);
-$reservations = $reservationQuery->fetchAll();
-$openCount = count(array_filter($reservations, static function (array $reservation): bool {
-    return in_array($reservation['status'], ['pending', 'processing', 'ready'], true);
-}));
+$reservations = [];
+$openCount = 0;
+if (in_array($view, ['home', 'history'], true)) {
+    $reservationQuery = db()->prepare(
+        "SELECT r.*, GROUP_CONCAT(CONCAT(ri.product_name, ' x ', ri.quantity) ORDER BY ri.id SEPARATOR ', ') AS items
+         FROM reservations r LEFT JOIN reservation_items ri ON ri.reservation_id = r.id
+         WHERE r.user_id = :user_id GROUP BY r.id ORDER BY r.created_at DESC"
+    );
+    $reservationQuery->execute(['user_id' => $user['id']]);
+    $reservations = $reservationQuery->fetchAll();
+    $openCount = count(array_filter($reservations, static function (array $reservation): bool {
+        return in_array($reservation['status'], ['pending', 'processing', 'ready'], true);
+    }));
+}
 
-$announcementsQuery = db()->prepare(
-    "SELECT title, content, announcement_type, published_at FROM announcements
-     WHERE is_active = 1 AND (academic_level = 'all' OR academic_level = :level)
-       AND published_at <= NOW() AND (expires_at IS NULL OR expires_at >= NOW())
-     ORDER BY published_at DESC LIMIT 4"
-);
-$announcementsQuery->execute(['level' => $user['academic_level']]);
-$announcements = $announcementsQuery->fetchAll();
+$announcements = [];
+if ($view === 'home') {
+    $announcementsQuery = db()->prepare(
+        "SELECT title, content, announcement_type, published_at FROM announcements
+         WHERE is_active = 1 AND (academic_level = 'all' OR academic_level = :level)
+           AND published_at <= NOW() AND (expires_at IS NULL OR expires_at >= NOW())
+         ORDER BY published_at DESC LIMIT 4"
+    );
+    $announcementsQuery->execute(['level' => $user['academic_level']]);
+    $announcements = $announcementsQuery->fetchAll();
+}
 
 $voucher = null;
 if ($view === 'voucher' && isset($_GET['code'])) {
@@ -340,7 +350,12 @@ if ($view === 'voucher' && isset($_GET['code'])) {
     <?php if ($view === 'home'): ?>
       <section class="student-welcome">
         <div><span class="overline">WELCOME BACK</span><h2>Everything you need for school,<br>all in one place.</h2><p>Reserve official CSCQC uniforms and learning materials, then claim them conveniently on campus.</p><div class="welcome-actions"><a class="welcome-primary" href="student.php?view=shop"><i class="bx bx-store"></i> Browse products</a><a class="welcome-secondary" href="student.php?view=history">View reservations <i class="bx bx-right-arrow-alt"></i></a></div></div>
-        <div class="welcome-art" aria-hidden="true"><span class="welcome-ring"></span><i class="bx bx-shopping-bag"></i><small>CSCQC<br>E-STORE</small></div>
+        <div class="welcome-showcase" aria-hidden="true">
+          <span class="showcase-label"><i class="bx bx-check-shield"></i> Official essentials</span>
+          <figure class="showcase-uniform"><img src="assets/images/products/uniform-shs-clean.png" alt=""></figure>
+          <figure class="showcase-book"><img src="assets/images/products/books/grade-05-real-life-mathematics.jpg" alt=""></figure>
+          <span class="showcase-spark spark-one">✦</span><span class="showcase-spark spark-two">✦</span>
+        </div>
       </section>
       <section class="stats-grid"><article><span class="dashboard-stat-icon"><i class="bx bx-receipt"></i></span><div><small>Total reservations</small><strong><?= count($reservations) ?></strong><p>Your complete order record</p></div></article><article><span class="dashboard-stat-icon gold"><i class="bx bx-time-five"></i></span><div><small>Open reservations</small><strong><?= $openCount ?></strong><p>Pending or ready to claim</p></div></article><article><span class="dashboard-stat-icon blue"><i class="bx bx-cart"></i></span><div><small>Cart items</small><strong><?= $cartCount ?></strong><p>Items waiting for checkout</p></div></article></section>
       <section class="panel section-card"><div class="panel-heading"><div><span class="overline">ANNOUNCEMENTS</span><h2>Important store updates</h2></div></div><?php if (!$announcements): ?><p class="empty-state">No active announcements for your academic level.</p><?php else: ?><div class="announcement-list"><?php foreach ($announcements as $notice): ?><article><i class="bx bx-bell"></i><div><strong><?= h($notice['title']) ?></strong><p><?= h($notice['content']) ?></p></div></article><?php endforeach; ?></div><?php endif; ?></section>

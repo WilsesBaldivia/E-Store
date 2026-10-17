@@ -162,6 +162,65 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
+/* Brighter editorial dashboard hero */
+.student-welcome{min-height:340px;padding:48px 50px;border:1px solid #dbe5dc;background:radial-gradient(circle at 84% 45%,#d9e9cb 0,transparent 25%),linear-gradient(125deg,#fffdf7 0%,#f7f9f2 56%,#e9f1df 100%);color:#173a2f;box-shadow:0 24px 65px #183c2e16}
+.student-welcome:before{background-image:linear-gradient(#0a684d08 1px,transparent 1px),linear-gradient(90deg,#0a684d08 1px,transparent 1px);mask-image:linear-gradient(90deg,#000,transparent 90%)}
+.student-welcome>div:first-child{max-width:650px}
+.student-welcome .overline{color:#0a7253}
+.student-welcome h2{color:#10392d}
+.student-welcome p{color:#62766d}
+.student-welcome .welcome-primary{background:linear-gradient(135deg,#0b7253,#064936);color:#fff;box-shadow:0 12px 26px #075b3b26}
+.student-welcome .welcome-primary:hover{background:linear-gradient(135deg,#075f46,#033c2e)}
+.student-welcome .welcome-secondary{border-color:#cbdacf;background:#fff;color:#1c5140;box-shadow:0 8px 20px #173b2d0b}
+.student-welcome .welcome-secondary:hover{border-color:#0a684d;background:#edf4ed}
+.welcome-showcase{position:absolute;right:4%;top:50%;width:360px;height:285px;transform:translateY(-50%)}
+.welcome-showcase:before{content:"";position:absolute;right:5px;top:18px;width:245px;height:245px;border-radius:50%;background:linear-gradient(145deg,#0b7253,#064936);box-shadow:0 24px 50px #07513d38}
+.welcome-showcase:after{content:"";position:absolute;right:27px;top:40px;width:198px;height:198px;border:1px solid #ffffff30;border-radius:50%}
+.welcome-showcase figure{position:absolute;z-index:2;margin:0;display:grid;place-items:center;border:1px solid #ffffffaa;background:#fff;box-shadow:0 18px 38px #153a2c32}
+.showcase-uniform{right:4px;bottom:3px;width:190px;height:240px;padding:12px;border-radius:24px 24px 34px 34px;transform:rotate(3deg)}
+.showcase-book{right:180px;bottom:18px;width:132px;height:176px;padding:7px;border-radius:13px;transform:rotate(-8deg)}
+.welcome-showcase img{display:block;width:100%;height:100%;object-fit:contain;border-radius:8px}
+.showcase-label{position:absolute;right:132px;top:0;z-index:4;display:inline-flex;align-items:center;gap:6px;padding:9px 12px;border:1px solid #dce6dc;border-radius:999px;background:#fff;color:#0a684d;font-size:9px;font-weight:800;box-shadow:0 10px 25px #14392b1f}
+.showcase-label i{font-size:14px}
+.showcase-spark{position:absolute;z-index:4;color:#d1a93d;text-shadow:0 4px 12px #b68d2640}.spark-one{right:12px;top:8px;font-size:27px}.spark-two{right:304px;top:82px;font-size:18px}
+.portal-page .stats-grid article:nth-child(1){border-top:3px solid #3d9a72}.portal-page .stats-grid article:nth-child(2){border-top:3px solid #d3ad4f}.portal-page .stats-grid article:nth-child(3){border-top:3px solid #4f96a7}
+.portal-page .stats-grid small{font-size:10px}.portal-page .stats-grid p{font-size:10px}.portal-page .stats-grid strong{font-size:38px}
+@media(max-width:1250px){.welcome-showcase{right:1%;transform:translateY(-50%) scale(.88);transform-origin:right center}.student-welcome>div:first-child{max-width:590px}}
+@media(max-width:960px){.welcome-showcase{opacity:.25;right:-40px}.student-welcome>div:first-child{max-width:700px}}
+@media(max-width:760px){.student-welcome{min-height:auto;padding:35px 25px}.welcome-showcase{display:none}}
+
+/* Readable typography across student-facing pages */
+.landing-page,.auth-page,.portal-page{font-family:'DM Sans',Arial,sans-serif;font-size:16px;line-height:1.55}
+.landing-page .school-strip{font-size:12px}
+.landing-page .site-header nav,.landing-page .header-actions{font-size:14px}
+.landing-page .hero-kicker{font-size:12px}
+.landing-page .hero-content>p{font-size:17px;line-height:1.75}
+.landing-page .hero-primary{font-size:14px}
+.landing-page .hero-proof strong{font-size:13px}.landing-page .hero-proof small{font-size:11px}
+.landing-page .preview-top>div span,.landing-page .open-pill{font-size:10px}
+.landing-page .collection-copy small{font-size:9px}.landing-page .collection-copy span{font-size:11px}
+.landing-page .pickup-card small{font-size:9px}.landing-page .pickup-card strong{font-size:14px}.landing-page .pickup-card p{font-size:11px}
+.landing-page .preview-footer,.landing-page .site-footer{font-size:11px}
+.auth-message .eyebrow{font-size:11px}.auth-message p{font-size:15px}.auth-message>a{font-size:13px}
+.auth-heading span{font-size:10px}.auth-card form label{font-size:12px}.auth-card input,.auth-card select{font-size:14px}
+.auth-switch,.form-alert{font-size:12px}.auth-card .primary-button{font-size:13px}
+.portal-page .side-brand>span:last-child{font-size:15px}.portal-page .side-brand small{font-size:9px}
+.portal-page .side-nav p{font-size:10px}.portal-page .side-nav a{font-size:14px}
+.portal-page .breadcrumb,.portal-page .overline{font-size:11px}
+.portal-page .topbar h1{font-family:'Manrope',sans-serif;font-size:31px;font-weight:800}
+.student-welcome p{font-size:15px}.welcome-actions a{font-size:13px}
+.portal-page .stats-grid small{font-size:11px}.portal-page .stats-grid p{font-size:11px}
+.portal-page .panel-heading h2{font-family:'Manrope',sans-serif;font-size:24px;font-weight:800}
+.announcement-list article strong{font-size:14px}.announcement-list article p{font-size:13px;line-height:1.65}
+.catalog-heading p{font-size:14px}.catalog-assurances span{font-size:11px}
+.portal-page .catalog-group-card .category{font-size:10px}.portal-page .catalog-group-card .product-info>p{font-size:13px}
+.portal-page .catalog-group-card .product-form label{font-size:11px}.portal-page .catalog-group-card .product-form select{font-size:13px}
+.portal-page .catalog-group-card .product-bottom strong{font-size:16px}.portal-page .catalog-group-card .add-cart{font-size:12px}
+.fixed-catalog-choice{font-size:12px}.book-cover-gallery>header strong{font-size:13px}.book-cover-gallery>header span{font-size:11px}
+.portal-page table{font-size:13px}.portal-page th{font-size:10px}.status{font-size:10px}
+.portal-page .empty-state,.portal-page .summary-card,.portal-page .checkout-form{font-size:13px}
+@media(max-width:760px){.landing-page,.auth-page,.portal-page{font-size:15px}.portal-page .topbar h1{font-size:24px}.student-welcome p{font-size:14px}.portal-page .side-nav a{font-size:14px}}
+
 /* Larger two-column catalog and product image zoom. */
 .catalog-groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;max-width:none}.catalog-group-card{border-radius:18px}.catalog-group-card .product-image{height:310px!important;min-height:310px!important;max-height:310px!important;flex-basis:310px!important}.catalog-group-card .product-image>img{inset:20px;width:calc(100% - 40px)!important;height:calc(100% - 40px)!important;cursor:zoom-in}.catalog-group-card .product-image>small{top:16px;left:16px;padding:7px 9px;font-size:7px}.catalog-group-card .product-info{padding:24px}.catalog-group-card .product-info h3{font-size:23px}.catalog-group-card .product-info>p{min-height:36px;font-size:11px}.catalog-group-card .category{font-size:7px}.catalog-group-card .product-form label{margin:14px 0 6px;font-size:9px}.catalog-group-card .product-form select{min-height:44px;padding:9px 11px;font-size:11px}.catalog-group-card .product-bottom{min-height:58px;margin-top:18px;padding-top:16px}.catalog-group-card .product-bottom strong{font-size:14px}.catalog-group-card .add-cart{min-height:40px;padding:10px 14px;font-size:9px}.product-zoom-trigger{position:absolute;right:16px;bottom:16px;z-index:3;display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:8px 12px;border:1px solid #d5e0d9;border-radius:20px;background:#fffffff2;color:#08664b;font:700 10px 'Manrope',sans-serif;cursor:pointer;box-shadow:0 6px 18px #173d2e20;transition:.18s}.product-zoom-trigger i{font-size:17px}.product-zoom-trigger:hover{border-color:#08664b;background:#08664b;color:#fff;transform:translateY(-1px)}.product-zoom-trigger:disabled{display:none}.product-zoom-modal{position:fixed;inset:0;z-index:210;display:grid;place-items:center;padding:24px;background:#082a21c7;backdrop-filter:blur(8px)}.product-zoom-modal[hidden]{display:none}.product-zoom-card{width:min(850px,100%);overflow:hidden;border:1px solid #ffffff55;border-radius:20px;background:#fff;box-shadow:0 30px 90px #001d1566;animation:modal-rise .22s ease}.product-zoom-card>header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:19px 22px;border-bottom:1px solid #e3e9e4}.product-zoom-card h2{margin:4px 0 0;font:700 22px 'Playfair Display';color:#173b30}.product-zoom-close{display:grid;place-items:center;width:42px;height:42px;border:1px solid #d7e1da;border-radius:50%;background:#fff;color:#315347;font-size:24px;cursor:pointer}.product-zoom-close:hover{background:#edf4ef;color:#075b3b}.product-zoom-stage{height:min(64vh,600px);overflow:auto;display:grid;place-items:center;padding:24px;background:#f4f7f3}.product-zoom-stage img{display:block;width:100%;height:100%;object-fit:contain;transform-origin:center;transition:transform .16s ease}.product-zoom-controls{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-top:1px solid #e3e9e4}.product-zoom-controls button{display:grid;place-items:center;min-width:42px;height:38px;padding:0 12px;border:1px solid #cfdcd4;border-radius:9px;background:#fff;color:#0a6048;font-weight:700;cursor:pointer}.product-zoom-controls button:hover:not(:disabled){border-color:#08664b;background:#08664b;color:#fff}.product-zoom-controls button:disabled{opacity:.4;cursor:not-allowed}@media(max-width:900px){.catalog-group-card .product-image{height:260px!important;min-height:260px!important;max-height:260px!important;flex-basis:260px!important}}@media(max-width:760px){.catalog-groups{grid-template-columns:1fr}.catalog-group-card .product-image{height:280px!important;min-height:280px!important;max-height:280px!important;flex-basis:280px!important}.product-zoom-stage{height:58vh}.product-zoom-trigger span{display:none}.product-zoom-trigger{width:40px;padding:0;justify-content:center}}
 
