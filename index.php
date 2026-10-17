@@ -157,7 +157,10 @@ if ($view === 'home') {
         http_response_code(500);
         exit('The landing page template is unavailable.');
     }
-    $template = str_replace('href="index.css"', 'href="assets/front.css"', $template);
+    $styleVersion = (int) filemtime(__DIR__ . '/assets/front.css');
+    $scriptVersion = (int) filemtime(__DIR__ . '/assets/front.js');
+    $template = str_replace('href="index.css"', 'href="assets/front.css?v=' . $styleVersion . '"', $template);
+    $template = str_replace('src="assets/front.js"', 'src="assets/front.js?v=' . $scriptVersion . '"', $template);
     if (current_user() && current_user()['role'] === 'student') {
         $template = str_replace('href="index.php?view=login">Log in', 'href="student.php">Student portal', $template);
     }

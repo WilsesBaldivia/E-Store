@@ -1,4 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-year]').forEach((year) => {
+    year.textContent = new Date().getFullYear();
+  });
+
   const button = document.querySelector('[data-menu]');
   const sidebar = document.querySelector('[data-sidebar]');
   button?.addEventListener('click', () => sidebar?.classList.toggle('open'));
