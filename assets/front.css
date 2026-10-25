@@ -257,6 +257,29 @@ body.zoom-open{overflow:hidden}
 .product-zoom-stage img{display:block;max-width:none;max-height:none;margin:auto;object-fit:contain;transform:none!important;transition:width .16s ease,height .16s ease}
 @media(max-width:760px){.product-zoom-modal{align-items:start;padding:10px}.product-zoom-card{width:100%;max-height:calc(100dvh - 20px);margin:auto;border-radius:15px}.product-zoom-card>header{padding:14px 15px}.product-zoom-card h2{font:800 18px 'Manrope',sans-serif}.product-zoom-stage{height:auto;min-height:0;padding:12px}.product-zoom-controls{position:sticky;bottom:0;padding:10px;background:#fff}.product-zoom-controls button{height:42px}}
 
+/* Phone-friendly reservation cart */
+@media(max-width:760px){
+  .portal-page .page-heading{padding:28px 0 18px}
+  .portal-page .section-card{padding:18px;margin-top:12px}
+  .cart-list article{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"item price" "quantity quantity" "remove remove";gap:12px 14px;padding:18px 0;align-items:center}
+  .cart-list article>div:first-child{grid-area:item;min-width:0}
+  .cart-list article>div:first-child strong{display:block;font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+  .cart-list article>div:first-child small{margin-top:4px;font-size:12px}
+  .cart-list article>.cart-quantity-control{grid-area:quantity;width:100%;grid-template-columns:48px 1fr 48px;min-height:46px}
+  .cart-list article>.cart-quantity-control span{font-size:14px}
+  .cart-list article>b{grid-area:price;text-align:right;font-size:14px;white-space:nowrap}
+  .cart-list article>.remove-cart-button{grid-area:remove;grid-column:auto;grid-row:auto;width:100%;min-height:44px;font-size:12px}
+  .cart-total{gap:18px;padding-top:20px}
+  .cart-total>strong{font-size:18px}
+  .cart-total>div,.cart-total .primary-button{width:100%}
+  .cart-total .primary-button{display:flex;align-items:center;justify-content:center;min-height:48px;font-size:13px}
+}
+@media(max-width:420px){
+  .portal-page .app-main{padding-inline:12px}
+  .portal-page .section-card{padding:15px}
+  .cart-list article{gap:11px 8px}
+}
+
 /* Larger two-column catalog and product image zoom. */
 .catalog-groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;max-width:none}.catalog-group-card{border-radius:18px}.catalog-group-card .product-image{height:310px!important;min-height:310px!important;max-height:310px!important;flex-basis:310px!important}.catalog-group-card .product-image>img{inset:20px;width:calc(100% - 40px)!important;height:calc(100% - 40px)!important;cursor:zoom-in}.catalog-group-card .product-image>small{top:16px;left:16px;padding:7px 9px;font-size:7px}.catalog-group-card .product-info{padding:24px}.catalog-group-card .product-info h3{font-size:23px}.catalog-group-card .product-info>p{min-height:36px;font-size:11px}.catalog-group-card .category{font-size:7px}.catalog-group-card .product-form label{margin:14px 0 6px;font-size:9px}.catalog-group-card .product-form select{min-height:44px;padding:9px 11px;font-size:11px}.catalog-group-card .product-bottom{min-height:58px;margin-top:18px;padding-top:16px}.catalog-group-card .product-bottom strong{font-size:14px}.catalog-group-card .add-cart{min-height:40px;padding:10px 14px;font-size:9px}.product-zoom-trigger{position:absolute;right:16px;bottom:16px;z-index:3;display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:8px 12px;border:1px solid #d5e0d9;border-radius:20px;background:#fffffff2;color:#08664b;font:700 10px 'Manrope',sans-serif;cursor:pointer;box-shadow:0 6px 18px #173d2e20;transition:.18s}.product-zoom-trigger i{font-size:17px}.product-zoom-trigger:hover{border-color:#08664b;background:#08664b;color:#fff;transform:translateY(-1px)}.product-zoom-trigger:disabled{display:none}.product-zoom-modal{position:fixed;inset:0;z-index:210;display:grid;place-items:center;padding:24px;background:#082a21c7;backdrop-filter:blur(8px)}.product-zoom-modal[hidden]{display:none}.product-zoom-card{width:min(850px,100%);overflow:hidden;border:1px solid #ffffff55;border-radius:20px;background:#fff;box-shadow:0 30px 90px #001d1566;animation:modal-rise .22s ease}.product-zoom-card>header{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:19px 22px;border-bottom:1px solid #e3e9e4}.product-zoom-card h2{margin:4px 0 0;font:700 22px 'Playfair Display';color:#173b30}.product-zoom-close{display:grid;place-items:center;width:42px;height:42px;border:1px solid #d7e1da;border-radius:50%;background:#fff;color:#315347;font-size:24px;cursor:pointer}.product-zoom-close:hover{background:#edf4ef;color:#075b3b}.product-zoom-stage{height:min(64vh,600px);overflow:auto;display:grid;place-items:center;padding:24px;background:#f4f7f3}.product-zoom-stage img{display:block;width:100%;height:100%;object-fit:contain;transform-origin:center;transition:transform .16s ease}.product-zoom-controls{display:flex;align-items:center;justify-content:center;gap:9px;padding:14px;border-top:1px solid #e3e9e4}.product-zoom-controls button{display:grid;place-items:center;min-width:42px;height:38px;padding:0 12px;border:1px solid #cfdcd4;border-radius:9px;background:#fff;color:#0a6048;font-weight:700;cursor:pointer}.product-zoom-controls button:hover:not(:disabled){border-color:#08664b;background:#08664b;color:#fff}.product-zoom-controls button:disabled{opacity:.4;cursor:not-allowed}@media(max-width:900px){.catalog-group-card .product-image{height:260px!important;min-height:260px!important;max-height:260px!important;flex-basis:260px!important}}@media(max-width:760px){.catalog-groups{grid-template-columns:1fr}.catalog-group-card .product-image{height:280px!important;min-height:280px!important;max-height:280px!important;flex-basis:280px!important}.product-zoom-stage{height:58vh}.product-zoom-trigger span{display:none}.product-zoom-trigger{width:40px;padding:0;justify-content:center}}
 

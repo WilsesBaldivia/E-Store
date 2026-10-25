@@ -302,3 +302,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (event.key === 'Escape' && logoutModal && !logoutModal.hidden) closeLogoutModal();
   });
 });
+
+window.addEventListener('pageshow', (event) => {
+  if (document.body.hasAttribute('data-protected-page') && event.persisted) {
+    window.location.reload();
+  }
+});

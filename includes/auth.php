@@ -6,10 +6,12 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     if (is_dir($sessionDirectory) && is_writable($sessionDirectory)) {
         session_save_path($sessionDirectory);
     }
+    $forwardedProtocol = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+    $isSecureRequest = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') || $forwardedProtocol === 'https';
     session_set_cookie_params([
         'lifetime' => 0,
         'path' => '/',
-        'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
+        'secure' => $isSecureRequest,
         'httponly' => true,
         'samesite' => 'Lax',
     ]);
@@ -101,8 +103,16 @@ function logout_user(): void
     session_destroy();
 }
 
+function prevent_protected_page_cache(): void
+{
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+    header('Pragma: no-cache');
+    header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+}
+
 function require_student(): array
 {
+    prevent_protected_page_cache();
     $user = current_user();
 
     if (!$user || $user['role'] !== 'student' || $user['status'] !== 'active') {
@@ -115,6 +125,7 @@ function require_student(): array
 
 function require_staff(): array
 {
+    prevent_protected_page_cache();
     $user = current_user();
 
     if (!$user || !in_array($user['role'], ['admin', 'staff'], true) || $user['status'] !== 'active') {

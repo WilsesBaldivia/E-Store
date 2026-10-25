@@ -17,3 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emptyMessage) emptyMessage.hidden = visible !== 0;
   });
 });
+
+window.addEventListener('pageshow', (event) => {
+  if (document.body.hasAttribute('data-protected-page') && event.persisted) {
+    window.location.reload();
+  }
+});

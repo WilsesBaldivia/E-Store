@@ -176,10 +176,13 @@ $flash = get_flash();
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= $view === 'login' ? 'Student Login' : ($view === 'forgot' ? 'Reset Password' : 'Student Registration') ?> | CSCQC E-Store</title>
+  <meta name="theme-color" content="#064c39">
+  <link rel="icon" type="image/png" href="assets/images/cscqc-estore-logo.png">
+  <link rel="apple-touch-icon" href="assets/images/cscqc-estore-logo.png">
   <link rel="stylesheet" href="assets/front.css">
 </head>
 <body class="auth-page">
-  <a class="brand auth-brand" href="index.php"><span class="brand-mark">C</span><span><strong>CSCQC</strong><small>E-STORE</small></span></a>
+  <a class="brand auth-brand" href="index.php"><span class="brand-mark"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt=""></span><span><strong>CSCQC</strong><small>E-STORE</small></span></a>
   <main class="auth-layout">
     <section class="auth-message">
       <span class="eyebrow">CSCQC STUDENT PORTAL</span>
