@@ -360,7 +360,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
 
     <?php if ($view === 'home'): ?>
       <section class="student-welcome">
-        <div><span class="overline">WELCOME BACK</span><h2>Everything you need for school,<br>all in one place.</h2><p>Reserve official CSCQC uniforms and learning materials, then claim them conveniently on campus.</p><div class="welcome-actions"><a class="welcome-primary" href="student.php?view=shop"><i class="bx bx-store"></i> Browse products</a><a class="welcome-secondary" href="student.php?view=history">View reservations <i class="bx bx-right-arrow-alt"></i></a></div></div>
+        <div><span class="overline">Welcome back</span><h2>Everything you need for school,<br>all in one place.</h2><p>Reserve official CSCQC uniforms and learning materials, then claim them conveniently on campus.</p><div class="welcome-actions"><a class="welcome-primary" href="student.php?view=shop"><i class="bx bx-store"></i> Browse products</a><a class="welcome-secondary" href="student.php?view=history">View reservations <i class="bx bx-right-arrow-alt"></i></a></div></div>
         <div class="welcome-showcase" aria-hidden="true">
           <span class="showcase-label"><i class="bx bx-check-shield"></i> Official essentials</span>
           <figure class="showcase-uniform"><img src="assets/images/products/uniform-shs-clean.png" alt=""></figure>
