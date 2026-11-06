@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS `inventory_movements` (
 -- Seed only non-sensitive lookup data.
 INSERT INTO `categories` (`name`, `slug`, `description`) VALUES
   ('Uniforms', 'uniforms', 'Official CSCQC uniforms for College, SHS, and JHS'),
+  ('P.E. Uniforms', 'pe-uniforms', 'Official physical education uniforms'),
   ('Books', 'books', 'Books, modules, and other learning materials')
 ON DUPLICATE KEY UPDATE
   `name` = VALUES(`name`),

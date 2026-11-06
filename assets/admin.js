@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const legacySkuField = document.querySelector('input[name="sku"]');
+  if (legacySkuField) {
+    const legacySkuLabel = legacySkuField.previousElementSibling;
+    legacySkuField.required = false;
+    legacySkuField.disabled = true;
+    legacySkuField.hidden = true;
+    if (legacySkuLabel?.tagName === 'LABEL') legacySkuLabel.hidden = true;
+  }
+
   const button = document.querySelector('[data-menu]');
   const sidebar = document.querySelector('[data-sidebar]');
   button?.addEventListener('click', () => sidebar?.classList.toggle('open'));
@@ -15,6 +24,35 @@ document.addEventListener('DOMContentLoaded', () => {
       if (matches) visible += 1;
     });
     if (emptyMessage) emptyMessage.hidden = visible !== 0;
+  });
+
+  const inventorySearch = document.querySelector('[data-inventory-search]');
+  const inventoryGroups = [...document.querySelectorAll('[data-inventory-group]')];
+  const inventoryEmpty = document.querySelector('[data-inventory-search-empty]');
+  const inventoryCount = document.querySelector('[data-inventory-search-count]');
+  const inventoryClear = document.querySelector('[data-inventory-search-clear]');
+  const filterInventory = () => {
+    if (!inventorySearch) return;
+    const query = inventorySearch.value.trim().toLowerCase();
+    let visible = 0;
+    inventoryGroups.forEach(group => {
+      const matches = (group.dataset.search || '').includes(query);
+      group.hidden = !matches;
+      if (matches) {
+        visible += 1;
+        if (query) group.open = true;
+      }
+    });
+    if (inventoryEmpty) inventoryEmpty.hidden = visible !== 0;
+    if (inventoryCount) inventoryCount.textContent = `${visible} ${visible === 1 ? 'product' : 'products'}`;
+    if (inventoryClear) inventoryClear.hidden = query === '';
+  };
+  inventorySearch?.addEventListener('input', filterInventory);
+  inventoryClear?.addEventListener('click', () => {
+    if (!inventorySearch) return;
+    inventorySearch.value = '';
+    filterInventory();
+    inventorySearch.focus();
   });
 
   const logoutForm = document.querySelector('[data-admin-logout-form]');
