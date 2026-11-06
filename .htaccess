@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteRule ^login/?$ index.php?view=login [L,QSA]
+RewriteRule ^register/?$ index.php?view=register [L,QSA]
+RewriteRule ^forgot-password/?$ index.php?view=forgot [L,QSA]
+RewriteRule ^student/?$ student.php [L,QSA]
+RewriteRule ^staff-login/?$ admin-login.php [L,QSA]
+RewriteRule ^manage/?$ admin.php [L,QSA]

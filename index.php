@@ -4,6 +4,13 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
 
+$requestedPath = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
+if (basename($requestedPath) === 'index.php') {
+    $requestedView = (string) ($_GET['view'] ?? 'home');
+    $cleanLocations = ['login' => 'login', 'register' => 'register', 'forgot' => 'forgot-password'];
+    redirect($cleanLocations[$requestedView] ?? './');
+}
+
 $view = (string) ($_GET['view'] ?? 'home');
 $allowedViews = ['home', 'login', 'register', 'forgot'];
 $view = in_array($view, $allowedViews, true) ? $view : 'home';
@@ -18,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Your form session expired. Please try again.';
     } elseif ($action === 'logout') {
         logout_user();
-        redirect('index.php');
+        redirect('./');
     } elseif ($action === 'login') {
         $view = 'login';
         $studentId = strtoupper(trim((string) ($_POST['student_id'] ?? '')));
@@ -38,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $errors[] = 'Your account is suspended. Please contact the E-Store staff.';
                 } else {
                     login_user($user);
-                    redirect('student.php');
+                    redirect('student');
                 }
             } catch (RuntimeException $exception) {
                 $errors[] = 'Login is temporarily unavailable. Please check MySQL.';
@@ -90,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                     unset($_SESSION['password_reset_attempts']);
                     set_flash('success', 'Your password has been changed. You can now log in.');
-                    redirect('index.php?view=login');
+                    redirect('login');
                 }
             } catch (RuntimeException $exception) {
                 $errors[] = 'Password recovery is temporarily unavailable. Please check MySQL.';
@@ -142,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'academic_level' => $form['academic_level'],
                     ]);
                     set_flash('success', 'Registration successful. You can now log in.');
-                    redirect('index.php?view=login');
+                    redirect('login');
                 }
             } catch (RuntimeException $exception) {
                 $errors[] = 'Registration is temporarily unavailable. Please check MySQL.';
@@ -162,7 +169,7 @@ if ($view === 'home') {
     $template = str_replace('href="index.css"', 'href="assets/front.css?v=' . $styleVersion . '"', $template);
     $template = str_replace('src="assets/front.js"', 'src="assets/front.js?v=' . $scriptVersion . '"', $template);
     if (current_user() && current_user()['role'] === 'student') {
-        $template = str_replace('href="index.php?view=login">Log in', 'href="student.php">Student portal', $template);
+        $template = str_replace('href="login">Log in', 'href="student">Student portal', $template);
     }
     echo $template;
     exit;
@@ -182,13 +189,13 @@ $flash = get_flash();
   <link rel="stylesheet" href="assets/front.css">
 </head>
 <body class="auth-page">
-  <a class="brand auth-brand" href="index.php"><span class="brand-mark"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt=""></span><span><strong>CSCQC</strong><small>E-STORE</small></span></a>
+  <a class="brand auth-brand" href="./"><span class="brand-mark"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt=""></span><span><strong>CSCQC</strong><small>E-STORE</small></span></a>
   <main class="auth-layout">
     <section class="auth-message">
       <span class="eyebrow">CSCQC STUDENT PORTAL</span>
       <h1><?= $view === 'login' ? 'Welcome back to your campus store.' : ($view === 'forgot' ? 'Recover your student account.' : 'Create your verified student account.') ?></h1>
       <p>Reserve official uniforms and learning materials, then track each order from your dashboard.</p>
-      <a href="index.php"><i class="bx bx-home-alt"></i> Return to the main page</a>
+      <a href="./"><i class="bx bx-home-alt"></i> Return to the main page</a>
     </section>
     <section class="auth-card <?= in_array($view, ['register', 'forgot'], true) ? 'register-card' : '' ?>">
       <div class="auth-heading"><span><?= $view === 'login' ? 'STUDENT LOGIN' : ($view === 'forgot' ? 'ACCOUNT RECOVERY' : 'NEW STUDENT') ?></span><h2><?= $view === 'login' ? 'Log in to your account' : ($view === 'forgot' ? 'Reset your password' : 'Register an account') ?></h2></div>
@@ -196,26 +203,26 @@ $flash = get_flash();
       <?php if ($errors): ?><div class="form-alert error"><ul><?php foreach ($errors as $error): ?><li><?= h($error) ?></li><?php endforeach; ?></ul></div><?php endif; ?>
 
       <?php if ($view === 'login'): ?>
-        <form method="post" action="index.php?view=login">
+        <form method="post" action="login">
           <?= csrf_field() ?><input type="hidden" name="action" value="login">
           <label for="studentId">Student ID</label><input id="studentId" name="student_id" autocomplete="username" required>
           <label for="password">Password</label><input id="password" name="password" type="password" autocomplete="current-password" required>
           <button class="primary-button full-button" type="submit">Log in</button>
         </form>
-        <p class="auth-switch"><a href="index.php?view=forgot">Forgot your password?</a></p>
-        <p class="auth-switch">No account yet? <a href="index.php?view=register">Register here</a></p>
+        <p class="auth-switch"><a href="forgot-password">Forgot your password?</a></p>
+        <p class="auth-switch">No account yet? <a href="register">Register here</a></p>
       <?php elseif ($view === 'forgot'): ?>
         <p>Enter the Student ID and email registered to your active account.</p>
-        <form method="post" action="index.php?view=forgot">
+        <form method="post" action="forgot-password">
           <?= csrf_field() ?><input type="hidden" name="action" value="reset_password">
           <label for="resetStudentId">Student ID</label><input id="resetStudentId" name="student_id" value="<?= h($resetForm['student_id']) ?>" autocomplete="username" required>
           <label for="resetEmail">Registered email</label><input id="resetEmail" name="email" type="email" value="<?= h($resetForm['email']) ?>" autocomplete="email" required>
           <div class="input-pair"><div><label for="resetPassword">New password</label><input id="resetPassword" name="password" type="password" minlength="8" autocomplete="new-password" required></div><div><label for="resetConfirmation">Confirm password</label><input id="resetConfirmation" name="password_confirmation" type="password" minlength="8" autocomplete="new-password" required></div></div>
           <button class="primary-button full-button" type="submit">Change password</button>
         </form>
-        <p class="auth-switch"><a href="index.php?view=login">Return to student login</a></p>
+        <p class="auth-switch"><a href="login">Return to student login</a></p>
       <?php else: ?>
-        <form method="post" action="index.php?view=register">
+        <form method="post" action="register">
           <?= csrf_field() ?><input type="hidden" name="action" value="register">
           <div class="input-pair"><div><label for="firstName">First name</label><input id="firstName" name="first_name" value="<?= h($form['first_name']) ?>" required></div><div><label for="lastName">Last name</label><input id="lastName" name="last_name" value="<?= h($form['last_name']) ?>" required></div></div>
           <label for="studentId">Student ID</label><input id="studentId" name="student_id" value="<?= h($form['student_id']) ?>" required>
@@ -224,7 +231,7 @@ $flash = get_flash();
           <div class="input-pair"><div><label for="newPassword">Password</label><input id="newPassword" name="password" type="password" minlength="8" required></div><div><label for="confirmPassword">Confirm password</label><input id="confirmPassword" name="password_confirmation" type="password" minlength="8" required></div></div>
           <button class="primary-button full-button" type="submit">Submit registration</button>
         </form>
-        <p class="auth-switch">Already registered? <a href="index.php?view=login">Log in</a></p>
+        <p class="auth-switch">Already registered? <a href="login">Log in</a></p>
       <?php endif; ?>
     </section>
   </main>

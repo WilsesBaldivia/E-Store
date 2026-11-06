@@ -135,7 +135,7 @@ function require_student(): array
 
     if (!$user || $user['role'] !== 'student' || $user['status'] !== 'active') {
         set_flash('error', 'Please log in with an active student account.');
-        redirect('index.php?view=login');
+        redirect('login');
     }
 
     return $user;
@@ -148,7 +148,7 @@ function require_staff(): array
 
     if (!$user || !in_array($user['role'], ['admin', 'staff'], true) || $user['status'] !== 'active') {
         set_flash('error', 'Please log in with an authorized staff account.');
-        redirect('admin-login.php');
+        redirect('staff-login');
     }
 
     return $user;

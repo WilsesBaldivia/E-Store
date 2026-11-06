@@ -2,15 +2,20 @@
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+$requestedPath = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
+if (basename($requestedPath) === 'admin.php') {
+    $queryString = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    redirect('manage' . ($queryString !== '' ? '?' . $queryString : ''));
+}
 $staff = require_staff();
 $view = (string) ($_GET['view'] ?? 'dashboard');
 $view = in_array($view, ['dashboard','reservations','inventory','products','users','reports'], true) ? $view : 'dashboard';
 if ($view === 'products') ensure_product_media_table();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!verify_csrf()) { set_flash('error', 'Form session expired.'); redirect('admin.php?view=' . urlencode($view)); }
+    if (!verify_csrf()) { set_flash('error', 'Form session expired.'); redirect('manage?view=' . urlencode($view)); }
     $action = (string) ($_POST['action'] ?? '');
-    if ($action === 'logout') { logout_user(); redirect('admin-login.php'); }
+    if ($action === 'logout') { logout_user(); redirect('staff-login'); }
     try {
         if ($action === 'user_status' && is_admin()) {
             $update = db()->prepare("UPDATE users SET status = :status WHERE id = :id AND role = 'student'");
@@ -174,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
         set_flash('error', $exception instanceof RuntimeException ? $exception->getMessage() : 'The change could not be saved. Check the submitted values.');
     }
-    redirect('admin.php?view=' . urlencode($view));
+    redirect('manage?view=' . urlencode($view));
 }
 $flash=get_flash();
 $metrics=[
@@ -292,6 +297,12 @@ $viewDescriptions = [
 ];
 $viewTitle = ucwords(str_replace('_', ' ', $view));
 $staffInitials = strtoupper(substr((string) $staff['first_name'], 0, 1) . substr((string) $staff['last_name'], 0, 1));
+$cleanAdminLinks = static fn(string $html): string => str_replace(
+    ['href="admin.php', 'href="index.php"'],
+    ['href="manage', 'href="./"'],
+    $html
+);
+ob_start($cleanAdminLinks);
 ?>
 <!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#064c39"><title><?= h($viewTitle) ?> | CSCQC E-Store</title><link rel="icon" type="image/png" href="assets/images/cscqc-estore-logo.png"><link rel="apple-touch-icon" href="assets/images/cscqc-estore-logo.png"><link rel="stylesheet" href="assets/admin.css?v=<?= (int) filemtime(__DIR__ . '/assets/admin.css') ?>"></head><body data-protected-page><button class="admin-menu" data-menu aria-label="Open admin navigation"><i class="bx bx-menu"></i></button><div class="admin-shell"><aside class="admin-sidebar" data-sidebar><a class="admin-brand" href="index.php" aria-label="Return to the CSCQC E-Store homepage"><span class="admin-mark"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt=""></span><span>CSCQC ADMIN<small>E-STORE MANAGEMENT</small></span></a><nav class="admin-nav" aria-label="Administration"><a class="<?= $view === 'dashboard' ? 'active' : '' ?>" href="admin.php"><span><i class="bx bx-home-alt"></i></span><b>Dashboard</b></a><a class="<?= $view === 'reservations' ? 'active' : '' ?>" href="admin.php?view=reservations"><span><i class="bx bx-receipt"></i></span><b>Reservations</b></a><a class="<?= $view === 'inventory' ? 'active' : '' ?>" href="admin.php?view=inventory"><span><i class="bx bx-package"></i></span><b>Inventory</b></a><a class="<?= $view === 'products' ? 'active' : '' ?>" href="admin.php?view=products"><span><i class="bx bx-store-alt"></i></span><b>Products &amp; Categories</b></a><a class="<?= $view === 'users' ? 'active' : '' ?>" href="admin.php?view=users"><span><i class="bx bx-user"></i></span><b>User Management</b></a><a class="<?= $view === 'reports' ? 'active' : '' ?>" href="admin.php?view=reports"><span><i class="bx bx-line-chart"></i></span><b>Reports</b></a></nav><div class="admin-sidebar-note"><i class="bx bx-shield-quarter"></i><span><strong>Secure portal</strong><small>Authorized staff access</small></span></div></aside><main class="admin-main"><header class="admin-topbar"><div class="admin-page-title"><span class="admin-mobile-kicker">CSCQC E-STORE</span><h1><?= h($viewTitle) ?></h1><p><?= h($viewDescriptions[$view] ?? 'Manage the CSCQC E-Store.') ?></p></div><div class="admin-account-actions"><div class="admin-identity"><span><?= h($staffInitials) ?></span><div><strong><?= h($staff['first_name'].' '.$staff['last_name']) ?></strong><small>Store administrator</small></div></div><form method="post" class="admin-topbar-logout" data-admin-logout-form><?= csrf_field() ?><input type="hidden" name="action" value="logout"><button type="submit"><i class="bx bx-log-out"></i><span>Log out</span></button></form></div></header><?php if($flash):?><div class="admin-alert <?= h($flash['type']) ?>"><?= h($flash['message']) ?></div><?php endif;?><div class="admin-logout-modal" data-admin-logout-modal role="dialog" aria-modal="true" aria-labelledby="adminLogoutTitle" hidden><section class="admin-logout-card"><span class="admin-logout-icon"><i class="bx bx-log-out"></i></span><h2 id="adminLogoutTitle">Log out of the admin portal?</h2><p>You will need to enter your staff email and password to access management again.</p><div class="admin-logout-actions"><button type="button" class="admin-stay-button" data-admin-logout-cancel>Stay logged in</button><button type="button" class="admin-confirm-logout" data-admin-logout-confirm><i class="bx bx-log-out"></i> Log out</button></div></section></div>
 <?php if($view==='dashboard'):?>

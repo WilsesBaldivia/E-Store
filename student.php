@@ -4,6 +4,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
 
+$requestedPath = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
+if (basename($requestedPath) === 'student.php') {
+    $queryString = (string) ($_SERVER['QUERY_STRING'] ?? '');
+    redirect('student' . ($queryString !== '' ? '?' . $queryString : ''));
+}
+
 $user = require_student();
 $view = (string) ($_GET['view'] ?? 'home');
 $view = in_array($view, ['home', 'shop', 'cart', 'checkout', 'history', 'voucher'], true) ? $view : 'home';
@@ -19,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Your form session expired. Please try again.';
     } elseif ($action === 'logout') {
         logout_user();
-        redirect('index.php');
+        redirect('./');
     } elseif ($action === 'add_cart') {
         $variantId = filter_input(INPUT_POST, 'variant_id', FILTER_VALIDATE_INT);
         $selectedLevel = (string) ($_POST['academic_level'] ?? '');
@@ -40,12 +46,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $_SESSION['cart'][(int) $variantId] = min(5, ((int) ($_SESSION['cart'][(int) $variantId] ?? 0)) + $quantity);
             set_flash('success', 'Item added to your reservation cart.');
-            redirect('student.php?view=shop');
+            redirect('student?view=shop');
         }
     } elseif ($action === 'remove_cart') {
         $variantId = (int) ($_POST['variant_id'] ?? 0);
         unset($_SESSION['cart'][$variantId]);
-        redirect('student.php?view=cart');
+        redirect('student?view=cart');
     } elseif ($action === 'update_cart') {
         $removeVariantId = filter_input(INPUT_POST, 'remove_variant_id', FILTER_VALIDATE_INT);
         $decreaseVariantId = filter_input(INPUT_POST, 'decrease_variant_id', FILTER_VALIDATE_INT);
@@ -66,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             set_flash('success', 'Cart quantities updated.');
         }
-        redirect('student.php?view=cart');
+        redirect('student?view=cart');
     } elseif ($action === 'reserve') {
         $view = 'checkout';
         $claimDate = (string) ($_POST['preferred_claim_date'] ?? '');
@@ -133,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 $pdo->commit();
                 $_SESSION['cart'] = [];
-                redirect('student.php?view=voucher&code=' . urlencode($code));
+                redirect('student?view=voucher&code=' . urlencode($code));
             } catch (Throwable $exception) {
                 if ($pdo->inTransaction()) {
                     $pdo->rollBack();
@@ -351,8 +357,8 @@ if ($view === 'voucher' && isset($_GET['code'])) {
 <body class="portal-page" data-protected-page>
 <button class="menu-toggle" type="button" data-menu><i class="bx bx-menu"></i></button>
 <div class="app-shell">
-<aside class="sidebar" data-sidebar><a class="side-brand" href="student.php"><span class="mini-seal"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt=""></span><span>CSCQC<small>E-STORE</small></span></a>
-    <nav class="side-nav"><a class="<?= $view === 'home' ? 'active' : '' ?>" href="student.php"><span><i class="bx bx-home-alt"></i></span> Home</a><p>STORE</p><a class="<?= $view === 'shop' ? 'active' : '' ?>" href="student.php?view=shop"><span><i class="bx bx-store"></i></span> Products</a><a class="<?= in_array($view, ['cart','checkout'], true) ? 'active' : '' ?>" href="student.php?view=cart"><span><i class="bx bx-cart"></i></span> Cart <b class="cart-badge"><?= $cartCount ?></b></a><p>ACCOUNT</p><a class="<?= $view === 'history' ? 'active' : '' ?>" href="student.php?view=history"><span><i class="bx bx-receipt"></i></span> Reservations</a></nav>
+<aside class="sidebar" data-sidebar><a class="side-brand" href="student"><span class="mini-seal"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt=""></span><span>CSCQC<small>E-STORE</small></span></a>
+    <nav class="side-nav"><a class="<?= $view === 'home' ? 'active' : '' ?>" href="student"><span><i class="bx bx-home-alt"></i></span> Home</a><p>STORE</p><a class="<?= $view === 'shop' ? 'active' : '' ?>" href="student?view=shop"><span><i class="bx bx-store"></i></span> Products</a><a class="<?= in_array($view, ['cart','checkout'], true) ? 'active' : '' ?>" href="student?view=cart"><span><i class="bx bx-cart"></i></span> Cart <b class="cart-badge"><?= $cartCount ?></b></a><p>ACCOUNT</p><a class="<?= $view === 'history' ? 'active' : '' ?>" href="student?view=history"><span><i class="bx bx-receipt"></i></span> Reservations</a></nav>
   </aside>
   <main class="app-main">
     <header class="topbar"><div><span class="breadcrumb">STUDENT / <?= h(strtoupper($view)) ?></span><?php if ($view === 'home'): ?><h1>Hi, <?= h($fullName) ?></h1><?php endif; ?></div><form method="post" class="topbar-logout no-print" data-logout-form><?= csrf_field() ?><input type="hidden" name="action" value="logout"><button type="submit"><i class="bx bx-log-out"></i><span>Log out</span></button></form></header>
@@ -360,7 +366,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
 
     <?php if ($view === 'home'): ?>
       <section class="student-welcome">
-        <div><span class="overline">Welcome back</span><h2>Everything you need for School,<br>All in one place.</h2><p>Reserve official CSCQC uniforms and learning materials, then claim them conveniently on campus.</p><div class="welcome-actions"><a class="welcome-primary" href="student.php?view=shop"><i class="bx bx-store"></i> Browse products</a><a class="welcome-secondary" href="student.php?view=history">View reservations <i class="bx bx-right-arrow-alt"></i></a></div></div>
+        <div><span class="overline">Welcome back</span><h2>Everything you need for School,<br>All in one place.</h2><p>Reserve official CSCQC uniforms and learning materials, then claim them conveniently on campus.</p><div class="welcome-actions"><a class="welcome-primary" href="student?view=shop"><i class="bx bx-store"></i> Browse products</a><a class="welcome-secondary" href="student?view=history">View reservations <i class="bx bx-right-arrow-alt"></i></a></div></div>
         <div class="welcome-showcase" aria-hidden="true">
           <span class="showcase-label"><i class="bx bx-check-shield"></i> Official essentials</span>
           <figure class="showcase-uniform"><img src="assets/images/products/uniform-shs-clean.png" alt=""></figure>
@@ -462,7 +468,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
         <?php endforeach; ?>
       </section>
     <?php elseif ($view === 'cart'): ?>
-      <section class="page-heading"><span class="overline">RESERVATION CART</span><h2>Review your selected items</h2></section><section class="panel section-card"><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="update_cart"><div class="cart-list"><?php if (!$cartRows): ?><p class="empty-state">Your cart is empty. <a href="student.php?view=shop">Browse products</a>.</p><?php endif; ?><?php foreach ($cartRows as $row): ?><article><div><strong><?= h($row['name']) ?></strong><small><?= h($row['size'] ?: 'Standard') ?></small></div><div class="cart-quantity-control"><button type="submit" name="decrease_variant_id" value="<?= (int) $row['id'] ?>" class="quantity-decrease<?= (int) $row['quantity'] <= 1 ? ' is-hidden' : '' ?>" aria-label="Decrease <?= h($row['name']) ?> quantity" title="Decrease quantity" <?= (int) $row['quantity'] <= 1 ? 'disabled aria-hidden="true" tabindex="-1"' : '' ?>><i class="bx bx-minus"></i></button><span aria-label="Quantity: <?= (int) $row['quantity'] ?>"><?= (int) $row['quantity'] ?></span><button type="submit" name="increase_variant_id" value="<?= (int) $row['id'] ?>" aria-label="Add one more <?= h($row['name']) ?>" title="Increase quantity" <?= (int) $row['quantity'] >= 5 ? 'disabled' : '' ?>><i class="bx bx-plus"></i></button></div><b>&#8369;<?= number_format($row['price'] * $row['quantity'], 2) ?></b><button type="submit" name="remove_variant_id" value="<?= (int) $row['id'] ?>" class="remove-cart-button" formnovalidate data-remove-item data-item-name="<?= h($row['name'] . ' — ' . ($row['size'] ?: 'Standard')) ?>"><i class="bx bx-trash"></i> Remove</button></article><?php endforeach; ?></div><?php if ($cartRows): ?><div class="cart-total"><strong>Total: &#8369;<?= number_format($cartTotal, 2) ?></strong><div><a class="primary-button" href="student.php?view=checkout">Proceed to checkout</a></div></div><?php endif; ?></form></section>
+      <section class="page-heading"><span class="overline">RESERVATION CART</span><h2>Review your selected items</h2></section><section class="panel section-card"><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="update_cart"><div class="cart-list"><?php if (!$cartRows): ?><p class="empty-state">Your cart is empty. <a href="student?view=shop">Browse products</a>.</p><?php endif; ?><?php foreach ($cartRows as $row): ?><article><div><strong><?= h($row['name']) ?></strong><small><?= h($row['size'] ?: 'Standard') ?></small></div><div class="cart-quantity-control"><button type="submit" name="decrease_variant_id" value="<?= (int) $row['id'] ?>" class="quantity-decrease<?= (int) $row['quantity'] <= 1 ? ' is-hidden' : '' ?>" aria-label="Decrease <?= h($row['name']) ?> quantity" title="Decrease quantity" <?= (int) $row['quantity'] <= 1 ? 'disabled aria-hidden="true" tabindex="-1"' : '' ?>><i class="bx bx-minus"></i></button><span aria-label="Quantity: <?= (int) $row['quantity'] ?>"><?= (int) $row['quantity'] ?></span><button type="submit" name="increase_variant_id" value="<?= (int) $row['id'] ?>" aria-label="Add one more <?= h($row['name']) ?>" title="Increase quantity" <?= (int) $row['quantity'] >= 5 ? 'disabled' : '' ?>><i class="bx bx-plus"></i></button></div><b>&#8369;<?= number_format($row['price'] * $row['quantity'], 2) ?></b><button type="submit" name="remove_variant_id" value="<?= (int) $row['id'] ?>" class="remove-cart-button" formnovalidate data-remove-item data-item-name="<?= h($row['name'] . ' — ' . ($row['size'] ?: 'Standard')) ?>"><i class="bx bx-trash"></i> Remove</button></article><?php endforeach; ?></div><?php if ($cartRows): ?><div class="cart-total"><strong>Total: &#8369;<?= number_format($cartTotal, 2) ?></strong><div><a class="primary-button" href="student?view=checkout">Proceed to checkout</a></div></div><?php endif; ?></form></section>
       <div class="cart-confirm-modal" data-remove-modal hidden>
         <section class="cart-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="removeTitle" aria-describedby="removeMessage">
           <div class="cart-confirm-icon"><i class="bx bx-trash"></i></div>
@@ -476,7 +482,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
     <?php elseif ($view === 'checkout'): ?>
       <section class="page-heading"><span class="overline">CHECKOUT</span><h2>Complete your reservation</h2><p>Payment will be collected when the order is claimed on campus.</p></section><div class="checkout-layout"><form method="post" class="panel checkout-form"><?= csrf_field() ?><input type="hidden" name="action" value="reserve"><label>Student name</label><input value="<?= h($fullName) ?>" readonly><label>Student ID</label><input value="<?= h($user['student_id']) ?>" readonly><label for="claimDate">Preferred claiming date</label><input id="claimDate" type="date" name="preferred_claim_date" min="<?= date('Y-m-d') ?>" required><label for="notes">Notes</label><textarea id="notes" name="notes" maxlength="500"></textarea><button class="checkout-button" <?= !$cartRows ? 'disabled' : '' ?>>Place reservation</button></form><aside class="panel summary-card"><h2>Order summary</h2><?php foreach ($cartRows as $row): ?><p><?= h($row['name']) ?> x <?= (int) $row['quantity'] ?> <b>&#8369;<?= number_format($row['price'] * $row['quantity'], 2) ?></b></p><?php endforeach; ?><hr><strong>Total: &#8369;<?= number_format($cartTotal, 2) ?></strong></aside></div>
     <?php elseif ($view === 'history'): ?>
-      <section class="page-heading"><span class="overline">ORDER RECORDS</span><h2>Reservation history</h2></section><section class="panel section-card"><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody><?php if (!$reservations): ?><tr><td colspan="5" class="empty-state">No reservations yet.</td></tr><?php endif; ?><?php foreach ($reservations as $reservation): ?><tr><td><a href="student.php?view=voucher&amp;code=<?= urlencode($reservation['reservation_code']) ?>"><strong><?= h($reservation['reservation_code']) ?></strong></a></td><td><?= h(date('M d, Y', strtotime($reservation['created_at']))) ?></td><td><?= h($reservation['items'] ?: 'No item details') ?></td><td>&#8369;<?= number_format((float) $reservation['total_amount'], 2) ?></td><td><span class="status <?= h($reservation['status']) ?>"><?= h(ucwords($reservation['status'])) ?></span></td></tr><?php endforeach; ?></tbody></table></div></section>
+      <section class="page-heading"><span class="overline">ORDER RECORDS</span><h2>Reservation history</h2></section><section class="panel section-card"><div class="table-wrap"><table><thead><tr><th>Voucher</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th></tr></thead><tbody><?php if (!$reservations): ?><tr><td colspan="5" class="empty-state">No reservations yet.</td></tr><?php endif; ?><?php foreach ($reservations as $reservation): ?><tr><td><a href="student?view=voucher&amp;code=<?= urlencode($reservation['reservation_code']) ?>"><strong><?= h($reservation['reservation_code']) ?></strong></a></td><td><?= h(date('M d, Y', strtotime($reservation['created_at']))) ?></td><td><?= h($reservation['items'] ?: 'No item details') ?></td><td>&#8369;<?= number_format((float) $reservation['total_amount'], 2) ?></td><td><span class="status <?= h($reservation['status']) ?>"><?= h(ucwords($reservation['status'])) ?></span></td></tr><?php endforeach; ?></tbody></table></div></section>
     <?php else: ?>
         <?php if (!$voucher): ?><section class="panel section-card empty-state">Voucher not found.</section><?php else: ?><section class="voucher panel"><div class="voucher-head"><span class="mini-seal"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt="CSCQC E-Store"></span><div><span class="overline">DIGITAL ORDER RESERVATION VOUCHER</span><h2>CSCQC E-Store</h2></div><button type="button" class="secondary-button no-print" onclick="window.print()">Print voucher</button></div><div class="voucher-code"><?= h($voucher['reservation_code']) ?></div><dl><div><dt>Student</dt><dd><?= h($fullName) ?></dd></div><div><dt>Student ID</dt><dd><?= h($user['student_id']) ?></dd></div><div><dt>Claiming date</dt><dd><?= h(date('M d, Y', strtotime($voucher['preferred_claim_date']))) ?></dd></div><div><dt>Status</dt><dd><?= h(ucwords($voucher['status'])) ?></dd></div></dl><h3>Reserved items</h3><ul><?php foreach (explode('||', (string) $voucher['items']) as $item): ?><li><?= h($item) ?></li><?php endforeach; ?></ul><div class="voucher-total">Total payable on campus: <strong>&#8369;<?= number_format((float) $voucher['total_amount'], 2) ?></strong></div><p>Present this voucher and your CSCQC student ID when claiming your order.</p></section><?php endif; ?>
     <?php endif; ?>
