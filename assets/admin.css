@@ -118,3 +118,14 @@ form:has(input[name="action"][value="product"]) input[name="name"],form:has(inpu
 
 /* Subtle status filters without exaggerated hover movement. */
 .reservation-status-tabs button:hover{border-color:#b9cec0;background:#f3f7f4;color:#315347;box-shadow:none;transform:none}.reservation-status-tabs button.active,.reservation-status-tabs button.active:hover{border-color:#0a684d;background:#0a684d;color:#fff;box-shadow:none;transform:none}.reservation-status-tabs button.active b,.reservation-status-tabs button.active:hover b{background:#fff;color:#0a684d}
+
+/* Keep the staff login anchored to the top on real phones. A tall mobile
+   viewport must not vertically center the whole form below the green band. */
+@media(max-width:760px){
+  .login-page{display:block;min-height:100vh;min-height:100svh;padding:0 15px 36px;background:linear-gradient(180deg,#043b30 0 190px,#f2f5f0 190px)}
+  .login-page:before{inset:0 0 auto;height:190px}
+  .login-wrap{display:block;width:min(570px,100%);margin:0 auto}
+  .login-message{display:flex;min-height:190px;padding:24px 0 18px;align-items:center;justify-content:center}
+  .login-message .admin-brand{display:flex;margin:0}
+  .login-card{width:100%;margin:0 auto;padding:30px 23px;border-radius:20px}
+}

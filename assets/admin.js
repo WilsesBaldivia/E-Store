@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (userDirectoryHead) {
     const cleanupNote = document.createElement('small');
     cleanupNote.className = 'account-cleanup-note';
-    cleanupNote.innerHTML = '<i class="bx bx-time-five"></i> Suspended accounts without reservations are deleted after 6 months.';
+    cleanupNote.innerHTML = '<i class="bx bx-time-five"></i> Accounts with no login activity and no reservations are deleted after 6 months.';
     userDirectoryHead.appendChild(cleanupNote);
   }
   userSearch?.addEventListener('input', () => {

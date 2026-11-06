@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderBookGallery();
         showImage('');
       } else if (catalogGroup === 'pe') {
-        showImage('');
+        showImage(level ? matching.find((item) => item.image)?.image || '' : '');
       } else {
         showImage(matching.find((item) => item.image)?.image || '');
       }

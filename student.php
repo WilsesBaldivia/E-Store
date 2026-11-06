@@ -39,12 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $check->execute(['id' => $variantId]);
         $variant = $check->fetch();
+        $existingCartQuantity = (int) ($_SESSION['cart'][(int) $variantId] ?? 0);
+        $requestedCartQuantity = min(5, $existingCartQuantity + $quantity);
         if (!in_array($selectedLevel, ['elementary', 'jhs', 'shs', 'college'], true)) {
             $errors[] = 'Please select an academic level.';
-        } elseif (!$variant || !in_array($variant['academic_level'], ['all', $selectedLevel], true) || (int) $variant['available'] < $quantity) {
+        } elseif (!$variant || !in_array($variant['academic_level'], ['all', $selectedLevel], true) || (int) $variant['available'] < $requestedCartQuantity) {
             $errors[] = 'That item is unavailable or does not have enough stock.';
         } else {
-            $_SESSION['cart'][(int) $variantId] = min(5, ((int) ($_SESSION['cart'][(int) $variantId] ?? 0)) + $quantity);
+            $_SESSION['cart'][(int) $variantId] = $requestedCartQuantity;
             set_flash('success', 'Item added to your reservation cart.');
             redirect('student?view=shop');
         }
@@ -417,9 +419,12 @@ if ($view === 'voucher' && isset($_GET['code'])) {
             } elseif ($groupKey === 'uniform') {
                 foreach ($group['options'] as $option) {
                     $choiceKey = $option['academic_level'] . '|' . $option['product_name'];
+                    $choiceLabel = preg_replace('/^(?:Elementary|Junior High|Senior High|JHS|SHS|College) School Uniform\s*-\s*/i', '', $option['product_name']);
+                    if (strcasecmp($choiceLabel, 'Girls') === 0) $choiceLabel = 'Girl';
+                    if (strcasecmp($choiceLabel, 'Boys') === 0) $choiceLabel = 'Boy';
                     $departmentChoices[$choiceKey] = [
                         'value' => $option['product_name'],
-                        'label' => preg_replace('/^(?:Elementary|Junior High|Senior High|JHS|SHS|College) School Uniform\s*-\s*/i', '', $option['product_name']),
+                        'label' => $choiceLabel,
                         'level' => $option['academic_level'],
                     ];
                 }
@@ -463,7 +468,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                   <div class="catalog-field" data-department-field hidden>
                     <label for="department-<?= h($groupKey) ?>"><?= $groupKey === 'uniform' ? 'Uniform choice' : 'Department' ?></label>
                     <select id="department-<?= h($groupKey) ?>" data-department-select disabled required>
-                      <option value=""><?= $groupKey === 'uniform' ? 'Choose girls or boys uniform' : 'Choose department' ?></option>
+                      <option value=""><?= $groupKey === 'uniform' ? 'Boy or Girl' : 'Choose department' ?></option>
                       <?php foreach ($departmentChoices as $departmentChoice): ?><option value="<?= h($departmentChoice['value']) ?>" data-level="<?= h($departmentChoice['level']) ?>"><?= h($departmentChoice['label']) ?></option><?php endforeach; ?>
                     </select>
                   </div>

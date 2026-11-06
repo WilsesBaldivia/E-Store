@@ -1,6 +1,11 @@
 <?php
 declare(strict_types=1);
 
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
     ini_set('session.use_strict_mode', '1');
     $sessionDirectory = dirname(__DIR__) . '/storage/sessions';
@@ -83,13 +88,38 @@ function current_user(): ?array
     $absoluteLimit = 8 * 60 * 60;
 
     if (($now - $lastActivity) > $idleLimit || ($now - $loginStarted) > $absoluteLimit) {
-        logout_user();
+        clear_authenticated_user();
         return null;
     }
 
     $_SESSION['last_activity'] = $now;
     $_SESSION['login_started'] = $loginStarted;
     return $user;
+}
+
+function clear_authenticated_user(): void
+{
+    unset($_SESSION['user'], $_SESSION['login_started'], $_SESSION['last_activity']);
+    if (session_status() === PHP_SESSION_ACTIVE) {
+        session_regenerate_id(true);
+    }
+}
+
+function refresh_authenticated_user(array $user): ?array
+{
+    if (!function_exists('db')) return $user;
+
+    $query = db()->prepare(
+        'SELECT id, student_id, first_name, last_name, email, academic_level, role, status
+         FROM users WHERE id = :id LIMIT 1'
+    );
+    $query->execute(['id' => (int) $user['id']]);
+    $fresh = $query->fetch();
+    if (!$fresh) return null;
+
+    $fresh['id'] = (int) $fresh['id'];
+    $_SESSION['user'] = $fresh;
+    return $fresh;
 }
 
 function login_user(array $user): void
@@ -140,8 +170,10 @@ function require_student(): array
 {
     prevent_protected_page_cache();
     $user = current_user();
+    if ($user) $user = refresh_authenticated_user($user);
 
     if (!$user || $user['role'] !== 'student' || $user['status'] !== 'active') {
+        clear_authenticated_user();
         set_flash('error', 'Please log in with an active student account.');
         redirect('login');
     }
@@ -153,8 +185,10 @@ function require_staff(): array
 {
     prevent_protected_page_cache();
     $user = current_user();
+    if ($user) $user = refresh_authenticated_user($user);
 
     if (!$user || !in_array($user['role'], ['admin', 'staff'], true) || $user['status'] !== 'active') {
+        clear_authenticated_user();
         set_flash('error', 'Please log in with an authorized staff account.');
         redirect('staff-login');
     }

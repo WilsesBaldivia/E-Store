@@ -27,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         logout_user();
         redirect('./');
     } elseif ($action === 'login') {
+        ensure_user_activity_tracking();
         $view = 'login';
         $studentId = strtoupper(trim((string) ($_POST['student_id'] ?? '')));
         $password = (string) ($_POST['password'] ?? '');
@@ -44,6 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($user['status'] !== 'active') {
                     $errors[] = 'Your account is suspended. Please contact the E-Store staff.';
                 } else {
+                    $activityUpdate = db()->prepare('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = :id');
+                    $activityUpdate->execute(['id' => (int) $user['id']]);
                     login_user($user);
                     redirect('student');
                 }
@@ -52,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($action === 'reset_password') {
+        ensure_user_activity_tracking();
         $view = 'forgot';
         $resetForm['student_id'] = strtoupper(trim((string) ($_POST['student_id'] ?? '')));
         $resetForm['email'] = strtolower(trim((string) ($_POST['email'] ?? '')));
@@ -104,6 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($action === 'register') {
+        ensure_user_activity_tracking();
         $view = 'register';
         foreach (array_keys($form) as $field) {
             $form[$field] = trim((string) ($_POST[$field] ?? ''));
@@ -188,7 +193,7 @@ $flash = get_flash();
   <meta name="theme-color" content="#064c39">
   <link rel="icon" type="image/png" href="assets/images/cscqc-estore-logo.png">
   <link rel="apple-touch-icon" href="assets/images/cscqc-estore-logo.png">
-  <link rel="stylesheet" href="assets/front.css">
+  <link rel="stylesheet" href="assets/front.css?v=<?= (int) filemtime(__DIR__ . '/assets/front.css') ?>">
 </head>
 <body class="auth-page">
   <a class="brand auth-brand" href="./"><span class="brand-mark"><img class="site-logo" src="assets/images/cscqc-estore-logo.png" alt=""></span><span><strong>CSCQC</strong><small>E-STORE</small></span></a>
@@ -237,5 +242,6 @@ $flash = get_flash();
       <?php endif; ?>
     </section>
   </main>
+  <script src="assets/front.js?v=<?= (int) filemtime(__DIR__ . '/assets/front.js') ?>"></script>
 </body>
 </html>

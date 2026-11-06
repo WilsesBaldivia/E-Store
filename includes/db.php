@@ -62,6 +62,37 @@ function ensure_product_media_table(): void
     $ready = true;
 }
 
+function ensure_user_activity_tracking(): void
+{
+    static $ready = false;
+    if ($ready) return;
+
+    $pdo = db();
+    $column = $pdo->query("SHOW COLUMNS FROM users LIKE 'last_login_at'")->fetch();
+    $addedColumn = false;
+    if (!$column) {
+        try {
+            $pdo->exec('ALTER TABLE users ADD COLUMN last_login_at timestamp NULL DEFAULT NULL AFTER status');
+            $addedColumn = true;
+        } catch (PDOException $exception) {
+            if ((int) ($exception->errorInfo[1] ?? 0) !== 1060) throw $exception;
+        }
+    }
+    $index = $pdo->query("SHOW INDEX FROM users WHERE Key_name = 'idx_users_last_login'")->fetch();
+    if (!$index) {
+        try {
+            $pdo->exec('ALTER TABLE users ADD KEY idx_users_last_login (role, last_login_at)');
+        } catch (PDOException $exception) {
+            if ((int) ($exception->errorInfo[1] ?? 0) !== 1061) throw $exception;
+        }
+    }
+    if ($addedColumn) {
+        // Existing accounts get a fresh six-month window when tracking is introduced.
+        $pdo->exec("UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE role = 'student'");
+    }
+    $ready = true;
+}
+
 function ensure_student_catalog_choices(): void
 {
     static $ready = false;

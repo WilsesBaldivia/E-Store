@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/db.php';
+ensure_user_activity_tracking();
 
 $requestedPath = (string) (parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH) ?? '');
 if (basename($requestedPath) === 'admin-login.php') {
@@ -40,7 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $query->fetch();
         if (!$user || !password_verify($password, $user['password'])) $errors[] = 'Invalid staff email or password.';
         elseif ($user['status'] !== 'active') $errors[] = 'This staff account is not active.';
-        else { login_user($user); redirect('manage'); }
+        else {
+            $activityUpdate = db()->prepare('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE id = :id');
+            $activityUpdate->execute(['id' => (int) $user['id']]);
+            login_user($user);
+            redirect('manage');
+        }
     }
 }
 $flash = get_flash();

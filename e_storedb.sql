@@ -24,13 +24,15 @@ CREATE TABLE IF NOT EXISTS `users` (
   `academic_level` enum('elementary','college','shs','jhs') DEFAULT NULL,
   `role` enum('student','staff','admin') NOT NULL DEFAULT 'student',
   `status` enum('active','suspended') NOT NULL DEFAULT 'active',
+  `last_login_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `uq_users_student_id` (`student_id`),
   UNIQUE KEY `uq_users_email` (`email`),
   KEY `idx_users_level` (`academic_level`),
-  KEY `idx_users_role_status` (`role`,`status`)
+  KEY `idx_users_role_status` (`role`,`status`),
+  KEY `idx_users_last_login` (`role`,`last_login_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- -----------------------------------------------------------------------------

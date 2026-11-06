@@ -8,6 +8,7 @@ if (basename($requestedPath) === 'admin.php') {
     redirect('manage' . ($queryString !== '' ? '?' . $queryString : ''));
 }
 $staff = require_staff();
+ensure_user_activity_tracking();
 $view = (string) ($_GET['view'] ?? 'dashboard');
 $view = in_array($view, ['dashboard','reservations','inventory','products','users','reports'], true) ? $view : 'dashboard';
 if ($view === 'products') ensure_product_media_table();
@@ -17,16 +18,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = (string) ($_POST['action'] ?? '');
     if ($action === 'logout') { logout_user(); redirect('staff-login'); }
     try {
+        if (!in_array($action, ['user_status','stock','reservation_status','category','product'], true)) {
+            throw new RuntimeException('The requested action is not supported.');
+        }
+        if (in_array($action, ['user_status','category','product'], true) && !is_admin()) {
+            throw new RuntimeException('Only an administrator can make this change.');
+        }
         if ($action === 'user_status' && is_admin()) {
+            $requestedStatus = (string) ($_POST['status'] ?? '');
+            if (!in_array($requestedStatus, ['active','suspended'], true)) {
+                throw new RuntimeException('Select a valid account status.');
+            }
             $update = db()->prepare("UPDATE users SET status = :status WHERE id = :id AND role = 'student'");
-            $update->execute(['status' => in_array($_POST['status'] ?? '', ['active','suspended'], true) ? $_POST['status'] : 'active', 'id' => (int) $_POST['id']]);
+            $update->execute(['status' => $requestedStatus, 'id' => (int) $_POST['id']]);
+            if ($update->rowCount() < 1) throw new RuntimeException('Student account not found or already unchanged.');
         } elseif ($action === 'stock') {
             $update = db()->prepare('UPDATE inventory SET stock_quantity = GREATEST(reserved_quantity, :stock) WHERE variant_id = :id');
             $update->execute(['stock' => max(0, (int) $_POST['stock']), 'id' => (int) $_POST['id']]);
+            if ($update->rowCount() < 1) {
+                $exists = db()->prepare('SELECT 1 FROM inventory WHERE variant_id = :id');
+                $exists->execute(['id' => (int) $_POST['id']]);
+                if (!$exists->fetchColumn()) throw new RuntimeException('Inventory item not found.');
+            }
         } elseif ($action === 'reservation_status') {
             $status = (string) ($_POST['status'] ?? 'pending');
-            if (in_array($status, ['pending','processing','ready','claimed','cancelled'], true)) {
-                $pdo = db();
+            if (!in_array($status, ['pending','processing','ready','claimed','cancelled'], true)) {
+                throw new RuntimeException('Select a valid reservation status.');
+            }
+            $pdo = db();
                 $pdo->beginTransaction();
                 $reservationId = (int) ($_POST['id'] ?? 0);
                 $reservationQuery = $pdo->prepare('SELECT id, status FROM reservations WHERE id = :id FOR UPDATE');
@@ -126,9 +145,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $update->execute(['status' => $status, 'claimed_status' => $status, 'id' => $reservationId]);
                 }
                 $pdo->commit();
-            }
         } elseif ($action === 'category' && is_admin()) {
             $name = trim((string) $_POST['name']); $slug = strtolower(preg_replace('/[^a-z0-9]+/i', '-', $name));
+            if ($name === '' || trim($slug, '-') === '') throw new RuntimeException('Enter a valid category name.');
             $insert = db()->prepare('INSERT INTO categories (name,slug) VALUES (:name,:slug) ON DUPLICATE KEY UPDATE name=VALUES(name), is_active=1');
             $insert->execute(['name' => $name, 'slug' => trim($slug, '-')]);
         } elseif ($action === 'product' && is_admin()) {
@@ -136,7 +155,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $categoryId = (int) ($_POST['category_id'] ?? 0);
             $categoryQuery = $pdo->prepare('SELECT name FROM categories WHERE id = :id AND is_active = 1');
             $categoryQuery->execute(['id' => $categoryId]);
-            $categoryName = (string) ($categoryQuery->fetchColumn() ?: 'Product');
+            $categoryName = (string) ($categoryQuery->fetchColumn() ?: '');
+            if ($categoryName === '') throw new RuntimeException('Select a valid product category.');
             $level = in_array($_POST['academic_level'] ?? '', ['all','elementary','jhs','shs','college'], true) ? (string) $_POST['academic_level'] : 'all';
             $gender = in_array($_POST['gender'] ?? '', ['all','girls','boys'], true) ? (string) $_POST['gender'] : 'all';
             $levelNames = ['all'=>'','elementary'=>'Elementary','jhs'=>'JHS','shs'=>'SHS','college'=>'College'];
@@ -144,8 +164,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $skuBase = strtoupper(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $productName), '-'));
             $skuBase = $skuBase !== '' ? substr($skuBase, 0, 30) : 'PRODUCT';
             $sku = $skuBase . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
+            $price = filter_var($_POST['price'] ?? null, FILTER_VALIDATE_FLOAT);
+            if ($price === false || $price < 0) throw new RuntimeException('Enter a valid product price.');
             $insert = $pdo->prepare('INSERT INTO products (category_id,sku,name,description,academic_level,base_price) VALUES (:category,:sku,:name,:description,:level,:price)');
-            $insert->execute(['category'=>$categoryId,'sku'=>$sku,'name'=>$productName,'description'=>trim((string)$_POST['description']),'level'=>$level,'price'=>(float)$_POST['price']]);
+            $insert->execute(['category'=>$categoryId,'sku'=>$sku,'name'=>$productName,'description'=>trim((string)$_POST['description']),'level'=>$level,'price'=>$price]);
             $productId=(int)$pdo->lastInsertId();
             $uploadedImage = $_FILES['product_image'] ?? null;
             if (is_array($uploadedImage) && (int) ($uploadedImage['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
@@ -195,7 +217,7 @@ $metrics=[
                          JOIN product_variants pv ON pv.id=i.variant_id
                          JOIN products p ON p.id=pv.product_id
                          WHERE p.is_active=1 AND pv.is_active=1
-                           AND p.sku NOT IN ('PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET')
+                           AND p.sku <> 'PE-ELEM-SET'
                            AND i.stock_quantity-i.reserved_quantity <= i.reorder_level")->fetchColumn(),
  'students'=>(int)db()->query("SELECT COUNT(*) FROM users WHERE role='student'")->fetchColumn(),
  'products'=>(int)db()->query('SELECT COUNT(*) FROM products WHERE is_active=1')->fetchColumn(),
@@ -211,7 +233,7 @@ $inventory=db()->query("SELECT pv.id variant_id,p.name,p.sku,pv.size,p.base_pric
                         JOIN products p ON p.id=pv.product_id
                         JOIN categories c ON c.id=p.category_id
                         WHERE p.is_active=1 AND pv.is_active=1
-                          AND p.sku NOT IN ('PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET')
+                          AND p.sku <> 'PE-ELEM-SET'
                         ORDER BY p.name,pv.size")->fetchAll();
 $inventoryGroups = [];
 foreach ($inventory as $inventoryRow) {
@@ -233,11 +255,11 @@ foreach ($inventory as $inventoryRow) {
     $inventoryGroups[$groupKey]['variants'][] = $inventoryRow;
 }
 }
-if ($view === 'users' && is_admin()) {
+if (is_admin()) {
     db()->exec("DELETE u FROM users u
                 LEFT JOIN reservations r ON r.user_id = u.id
-                WHERE u.role = 'student' AND u.status = 'suspended'
-                  AND u.updated_at < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 6 MONTH)
+                WHERE u.role = 'student'
+                  AND COALESCE(u.last_login_at, u.created_at) < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 6 MONTH)
                   AND r.id IS NULL");
 }
 if ($view === 'users') {
@@ -339,4 +361,4 @@ ob_start($cleanAdminLinks);
 <?php elseif($view==='reservations'):?><section class="admin-panel data-view-panel reservations-panel"><div class="data-view-heading"><div><span class="eyebrow">ORDER WORKFLOW</span><h2>Student reservations</h2><p>Update each order as it moves from pending to campus claiming.</p></div><span class="data-count"><?= count($reservations) ?> orders</span></div><div class="table-wrap"><table class="admin-data-table reservations-table"><thead><tr><th>Voucher</th><th>Student</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr></thead><tbody><?php foreach($reservations as $row):?><tr><td data-label="Voucher"><strong><?=h($row['reservation_code'])?></strong></td><td data-label="Student"><strong><?=h($row['student_name'])?></strong><small><?=h($row['student_id'])?></small></td><td data-label="Date"><?=h(date('M d, Y',strtotime($row['created_at'])))?></td><td data-label="Total" class="money-cell">&#8369;<?=number_format((float)$row['total_amount'],2)?></td><td data-label="Status"><span class="badge <?=h($row['status'])?>"><?=h(ucwords($row['status']))?></span></td><td data-label="Action"><form method="post" class="inline-form reservation-action"><?=csrf_field()?><input type="hidden" name="action" value="reservation_status"><input type="hidden" name="id" value="<?=$row['id']?>"><select name="status" aria-label="Status for <?=h($row['reservation_code'])?>"><?php foreach(['pending','processing','ready','claimed','cancelled'] as $status):?><option <?=$row['status']===$status?'selected':''?>><?=$status?></option><?php endforeach;?></select><button><i class="bx bx-check"></i> Save</button></form></td></tr><?php endforeach;?></tbody></table></div></section>
 <?php elseif($view==='inventory'):?><section class="admin-panel data-view-panel inventory-panel"><div class="data-view-heading"><div><span class="eyebrow">STOCK CONTROL</span><h2>Inventory levels</h2><p>Select a product to view and update its sizes. Reserved quantities remain protected.</p></div><span class="data-count"><?= count($inventoryGroups) ?> products &middot; <?= count($inventory) ?> variants</span></div><div class="inventory-tools"><label class="inventory-search"><i class="bx bx-search"></i><input type="search" placeholder="Search product, SKU, category, or size" aria-label="Search inventory" autocomplete="off" data-inventory-search><button type="button" aria-label="Clear inventory search" data-inventory-search-clear hidden><i class="bx bx-x"></i></button></label><span data-inventory-search-count><?= count($inventoryGroups) ?> products</span></div><div class="inventory-accordion"><?php foreach($inventoryGroups as $group): $groupSearch=strtolower($group['name'].' '.$group['sku'].' '.$group['category'].' '.implode(' ',array_map(static fn(array $variant): string => (string)($variant['size']?:'standard'),$group['variants'])));?><details class="inventory-group" data-inventory-group data-search="<?=h($groupSearch)?>"><summary><span class="inventory-group-icon"><i class="bx bx-package"></i></span><span class="inventory-group-name"><strong><?=h($group['name'])?></strong><small><span class="sku-code"><?=h($group['sku'])?></span> <?=count($group['variants'])?> <?=count($group['variants'])===1?'option':'sizes'?></small></span><span class="inventory-group-stat"><small>Available</small><b><?=$group['available']?></b></span><span class="inventory-group-stat reserved"><small>Reserved</small><b><?=$group['reserved']?></b></span><span class="inventory-expand"><small>View sizes</small><i class="bx bx-chevron-down"></i></span></summary><div class="inventory-group-content"><div class="table-wrap"><table class="admin-data-table inventory-table grouped-inventory-table"><thead><tr><th>Size</th><th>Reserved</th><th>Available</th><th>Total stock</th><th>Save</th></tr></thead><tbody><?php foreach($group['variants'] as $row): $stockFormId='stock-form-'.(int)$row['variant_id'];?><tr><td data-label="Size"><strong><?=h($row['size']?:'Standard')?></strong></td><td data-label="Reserved"><?=$row['reserved_quantity']?></td><td data-label="Available"><span class="available-count"><?=max(0,(int)$row['stock_quantity']-(int)$row['reserved_quantity'])?></span></td><td data-label="Total stock"><form id="<?=h($stockFormId)?>" method="post" class="stock-form"><?=csrf_field()?><input type="hidden" name="action" value="stock"><input type="hidden" name="id" value="<?=$row['variant_id']?>"><input type="number" name="stock" min="<?=$row['reserved_quantity']?>" value="<?=$row['stock_quantity']?>" aria-label="Total stock for <?=h($row['name'].' '.($row['size']?:'Standard'))?>"></form></td><td data-label="Save"><button type="submit" form="<?=h($stockFormId)?>" class="stock-update"><i class="bx bx-save"></i> Update</button></td></tr><?php endforeach;?></tbody></table></div></div></details><?php endforeach;?><div class="inventory-search-empty" data-inventory-search-empty hidden><i class="bx bx-search"></i><strong>No products found</strong><p>Try a different product name, SKU, category, or size.</p></div></div></section>
 <?php elseif($view==='users'):?><section class="admin-panel user-directory"><div class="user-directory-head"><div><span class="eyebrow">ACCOUNT DIRECTORY</span><p>Manage student access and review registered customer accounts.</p></div><label class="user-search"><i class="bx bx-search"></i><input type="search" placeholder="Search users" data-user-search></label></div><div class="table-wrap"><table class="user-table"><thead><tr><th>Full name</th><th>Status</th><th>Email</th><th>Academic level</th><th>Reservations</th><th>Access</th></tr></thead><tbody><?php foreach($users as $row): $fullName=$row['first_name'].' '.$row['last_name']; $active=$row['status']==='active';?><tr data-user-row data-search="<?=h(strtolower($fullName.' '.$row['email'].' '.$row['student_id']))?>"><td><div class="directory-user"><span class="directory-avatar"><?=h(strtoupper(substr($row['first_name'],0,1).substr($row['last_name'],0,1)))?></span><div><strong><?=h($fullName)?></strong><small><?=h($row['student_id'])?></small></div></div></td><td><span class="account-status <?=$active?'active':'inactive'?>"><?=$active?'Active':'Not active'?></span></td><td><?=h($row['email'])?></td><td><?=h(strtoupper($row['academic_level']))?></td><td><?=(int)$row['orders']?></td><td><?php if(is_admin()):?><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="user_status"><input type="hidden" name="id" value="<?=$row['id']?>"><input type="hidden" name="status" value="<?=$active?'suspended':'active'?>"><button class="account-action <?=$active?'deactivate':'activate'?>"><?=$active?'Deactivate':'Activate'?></button></form><?php endif;?></td></tr><?php endforeach;?></tbody></table><p class="empty-report" data-user-empty hidden>No users match your search.</p></div></section>
-<?php else:?><div class="admin-columns"><section class="admin-panel"><h2>Add category</h2><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="category"><label>Category name</label><input name="name" required><button class="primary-button">Save category</button></form></section><section class="admin-panel"><h2>Add product and first variant</h2><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="product"><label>Category</label><select name="category_id"><?php foreach($categories as $cat):?><option value="<?=$cat['id']?>"><?=h($cat['name'])?></option><?php endforeach;?></select><label>SKU</label><input name="sku" required><label>Name</label><input name="name" required><label>Description</label><textarea name="description"></textarea><label>Academic level</label><select name="academic_level"><option value="all">All</option><option value="elementary">Elementary</option><option value="jhs">JHS</option><option value="shs">SHS</option><option value="college">College</option></select><label>Price</label><input name="price" type="number" min="0" step="0.01" required><label>Size/variant</label><input name="size" placeholder="Standard, Small, 32"><label>Initial stock</label><input name="stock" type="number" min="0" value="0"><button class="primary-button">Add product</button></form></section></div><?php endif;?><footer class="admin-footer">CSCQC E-Store · Administration &copy; <?=date('Y')?></footer></main></div><script src="assets/admin.js"></script></body></html>
+<?php else:?><div class="admin-columns"><section class="admin-panel"><h2>Add category</h2><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="category"><label>Category name</label><input name="name" required><button class="primary-button">Save category</button></form></section><section class="admin-panel"><h2>Add product and first variant</h2><form method="post"><?=csrf_field()?><input type="hidden" name="action" value="product"><label>Category</label><select name="category_id"><?php foreach($categories as $cat):?><option value="<?=$cat['id']?>"><?=h($cat['name'])?></option><?php endforeach;?></select><label>SKU</label><input name="sku" required><label>Name</label><input name="name" required><label>Description</label><textarea name="description"></textarea><label>Academic level</label><select name="academic_level"><option value="all">All</option><option value="elementary">Elementary</option><option value="jhs">JHS</option><option value="shs">SHS</option><option value="college">College</option></select><label>Price</label><input name="price" type="number" min="0" step="0.01" required><label>Size/variant</label><input name="size" placeholder="Standard, Small, 32"><label>Initial stock</label><input name="stock" type="number" min="0" value="0"><button class="primary-button">Add product</button></form></section></div><?php endif;?><footer class="admin-footer">CSCQC E-Store · Administration &copy; <?=date('Y')?></footer></main></div><script src="assets/admin.js?v=<?= (int) filemtime(__DIR__ . '/assets/admin.js') ?>"></script></body></html>

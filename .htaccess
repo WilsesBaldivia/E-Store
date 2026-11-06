@@ -1,4 +1,9 @@
 RewriteEngine On
+DirectoryIndex index.php
+RewriteRule (^|/)(\.git|\.env|database|includes|storage)(/|$) - [R=404,L,NC]
+RewriteRule \.(sql|md|ps1|log|env|ini)$ - [R=404,L,NC]
+RewriteRule ^(Dockerfile|railway\.json|\.htaccess|\.dockerignore)$ - [R=404,L,NC]
+RewriteRule ^index\.html$ ./ [R=302,L]
 RewriteRule ^login/?$ index.php?view=login [L,QSA]
 RewriteRule ^register/?$ index.php?view=register [L,QSA]
 RewriteRule ^forgot-password/?$ index.php?view=forgot [L,QSA]
