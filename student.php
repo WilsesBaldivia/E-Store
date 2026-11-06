@@ -153,6 +153,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $flash = get_flash();
 $levelLabels = ['elementary' => 'Elementary', 'jhs' => 'Junior High School', 'shs' => 'Senior High School', 'college' => 'College'];
 $fullName = format_person_name($user['first_name'] . ' ' . $user['last_name']);
+$studentInitials = strtoupper(substr((string) $user['first_name'], 0, 1) . substr((string) $user['last_name'], 0, 1));
+$studentLevel = $levelLabels[$user['academic_level']] ?? 'Student';
 
 $cartRows = [];
 if ($_SESSION['cart'] && in_array($view, ['cart', 'checkout'], true)) {
@@ -361,7 +363,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
     <nav class="side-nav"><a class="<?= $view === 'home' ? 'active' : '' ?>" href="student"><span><i class="bx bx-home-alt"></i></span> Home</a><p>STORE</p><a class="<?= $view === 'shop' ? 'active' : '' ?>" href="student?view=shop"><span><i class="bx bx-store"></i></span> Products</a><a class="<?= in_array($view, ['cart','checkout'], true) ? 'active' : '' ?>" href="student?view=cart"><span><i class="bx bx-cart"></i></span> Cart <b class="cart-badge"><?= $cartCount ?></b></a><p>ACCOUNT</p><a class="<?= $view === 'history' ? 'active' : '' ?>" href="student?view=history"><span><i class="bx bx-receipt"></i></span> Reservations</a></nav>
   </aside>
   <main class="app-main">
-    <header class="topbar"><div><span class="breadcrumb">STUDENT / <?= h(strtoupper($view)) ?></span><?php if ($view === 'home'): ?><h1>Hi, <?= h($fullName) ?></h1><?php endif; ?></div><form method="post" class="topbar-logout no-print" data-logout-form><?= csrf_field() ?><input type="hidden" name="action" value="logout"><button type="submit"><i class="bx bx-log-out"></i><span>Log out</span></button></form></header>
+    <header class="topbar"><div class="student-page-title"><span class="breadcrumb">STUDENT / <?= h(strtoupper($view)) ?></span><?php if ($view === 'home'): ?><h1>Hi, <?= h($fullName) ?></h1><?php endif; ?></div><div class="student-account-actions"><div class="student-identity"><span><?= h($studentInitials) ?></span><div><strong><?= h($fullName) ?></strong><small><?= h($studentLevel) ?> student</small></div></div><form method="post" class="topbar-logout no-print" data-logout-form><?= csrf_field() ?><input type="hidden" name="action" value="logout"><button type="submit"><i class="bx bx-log-out"></i><span>Log out</span></button></form></div></header>
     <?php if ($flash): ?><div class="portal-alert success"><?= h($flash['message']) ?></div><?php endif; ?><?php if ($errors): ?><div class="portal-alert error"><?php foreach ($errors as $error): ?><p><?= h($error) ?></p><?php endforeach; ?></div><?php endif; ?>
 
     <?php if ($view === 'home'): ?>
