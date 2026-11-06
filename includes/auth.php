@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 if (session_status() !== PHP_SESSION_ACTIVE) {
+    ini_set('session.use_strict_mode', '1');
     $sessionDirectory = dirname(__DIR__) . '/storage/sessions';
     if (is_dir($sessionDirectory) && is_writable($sessionDirectory)) {
         session_save_path($sessionDirectory);
@@ -13,7 +14,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
         'path' => '/',
         'secure' => $isSecureRequest,
         'httponly' => true,
-        'samesite' => 'Lax',
+        'samesite' => 'Strict',
     ]);
     session_start();
 }
@@ -65,12 +66,29 @@ function verify_csrf(): bool
 function current_user(): ?array
 {
     $user = $_SESSION['user'] ?? null;
-    return is_array($user) ? $user : null;
+    if (!is_array($user)) return null;
+
+    $now = time();
+    $lastActivity = (int) ($_SESSION['last_activity'] ?? $now);
+    $loginStarted = (int) ($_SESSION['login_started'] ?? $now);
+    $idleLimit = 15 * 60;
+    $absoluteLimit = 8 * 60 * 60;
+
+    if (($now - $lastActivity) > $idleLimit || ($now - $loginStarted) > $absoluteLimit) {
+        logout_user();
+        return null;
+    }
+
+    $_SESSION['last_activity'] = $now;
+    $_SESSION['login_started'] = $loginStarted;
+    return $user;
 }
 
 function login_user(array $user): void
 {
     session_regenerate_id(true);
+    $_SESSION['login_started'] = time();
+    $_SESSION['last_activity'] = time();
     $_SESSION['user'] = [
         'id' => (int) $user['id'],
         'student_id' => $user['student_id'] ?? null,
