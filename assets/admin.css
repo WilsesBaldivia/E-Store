@@ -90,3 +90,8 @@ body{background:radial-gradient(circle at 92% 0,#dfeadd 0,transparent 27%),linea
 .form-help{display:block!important;margin:7px 0 2px!important;color:#718078!important;font-size:11px!important}
 
 input[name="sku"],label:has(+ input[name="sku"]){display:none!important}
+
+body[data-protected-page] .admin-brand{pointer-events:none;cursor:default}
+body[data-protected-page] .admin-brand:hover{opacity:1;transform:none}
+
+.login-page .back-store{display:none!important}

@@ -1,4 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const protectedAdminBrand = document.querySelector('body[data-protected-page] .admin-brand');
+  if (protectedAdminBrand) {
+    protectedAdminBrand.removeAttribute('href');
+    protectedAdminBrand.removeAttribute('aria-label');
+    protectedAdminBrand.setAttribute('aria-disabled', 'true');
+    protectedAdminBrand.setAttribute('tabindex', '-1');
+    protectedAdminBrand.addEventListener('click', event => event.preventDefault());
+  }
+
   const legacySkuField = document.querySelector('input[name="sku"]');
   if (legacySkuField) {
     const legacySkuLabel = legacySkuField.previousElementSibling;
@@ -31,6 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const inventoryEmpty = document.querySelector('[data-inventory-search-empty]');
   const inventoryCount = document.querySelector('[data-inventory-search-count]');
   const inventoryClear = document.querySelector('[data-inventory-search-clear]');
+  if (inventorySearch) {
+    inventorySearch.placeholder = 'Search product, category, or size';
+    inventorySearch.setAttribute('aria-label', 'Search inventory by product, category, or size');
+  }
+  const inventoryEmptyHelp = inventoryEmpty?.querySelector('p');
+  if (inventoryEmptyHelp) inventoryEmptyHelp.textContent = 'Try a different product name, category, or size.';
   const filterInventory = () => {
     if (!inventorySearch) return;
     const query = inventorySearch.value.trim().toLowerCase();
