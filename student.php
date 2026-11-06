@@ -260,6 +260,8 @@ $catalogImageFiles = [
 foreach ($productRows as $row) {
     if ($row['category_slug'] === 'books') {
         $groupKey = 'books';
+    } elseif ($row['category_slug'] === 'pe-uniforms') {
+        $groupKey = 'pe';
     } elseif ($row['category_slug'] === 'uniforms') {
         if (str_starts_with($row['sku'], 'TYPEB-')) {
             $groupKey = 'typeb';

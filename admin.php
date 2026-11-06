@@ -31,6 +31,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $currentStatus = (string) $reservation['status'];
+                if (in_array($currentStatus, ['claimed', 'cancelled'], true) && $currentStatus !== $status) {
+                    throw new RuntimeException('Completed and cancelled reservations are locked.');
+                }
                 if ($currentStatus !== $status) {
                     $reservedStatuses = ['pending', 'processing', 'ready'];
                     $wasReserved = in_array($currentStatus, $reservedStatuses, true);
@@ -124,13 +127,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert->execute(['name' => $name, 'slug' => trim($slug, '-')]);
         } elseif ($action === 'product' && is_admin()) {
             $pdo = db(); $pdo->beginTransaction();
-            $productName = trim((string) ($_POST['name'] ?? ''));
-            if ($productName === '') throw new RuntimeException('A product name is required.');
+            $categoryId = (int) ($_POST['category_id'] ?? 0);
+            $categoryQuery = $pdo->prepare('SELECT name FROM categories WHERE id = :id AND is_active = 1');
+            $categoryQuery->execute(['id' => $categoryId]);
+            $categoryName = (string) ($categoryQuery->fetchColumn() ?: 'Product');
+            $level = in_array($_POST['academic_level'] ?? '', ['all','elementary','jhs','shs','college'], true) ? (string) $_POST['academic_level'] : 'all';
+            $gender = in_array($_POST['gender'] ?? '', ['all','girls','boys'], true) ? (string) $_POST['gender'] : 'all';
+            $levelNames = ['all'=>'','elementary'=>'Elementary','jhs'=>'JHS','shs'=>'SHS','college'=>'College'];
+            $productName = trim($levelNames[$level].' '.rtrim($categoryName, 's').($gender !== 'all' ? ' - '.ucfirst($gender) : ''));
             $skuBase = strtoupper(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $productName), '-'));
             $skuBase = $skuBase !== '' ? substr($skuBase, 0, 30) : 'PRODUCT';
             $sku = $skuBase . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6));
             $insert = $pdo->prepare('INSERT INTO products (category_id,sku,name,description,academic_level,base_price) VALUES (:category,:sku,:name,:description,:level,:price)');
-            $insert->execute(['category'=>(int)$_POST['category_id'],'sku'=>$sku,'name'=>$productName,'description'=>trim((string)$_POST['description']),'level'=>$_POST['academic_level'],'price'=>(float)$_POST['price']]);
+            $insert->execute(['category'=>$categoryId,'sku'=>$sku,'name'=>$productName,'description'=>trim((string)$_POST['description']),'level'=>$level,'price'=>(float)$_POST['price']]);
             $productId=(int)$pdo->lastInsertId();
             $variant=$pdo->prepare('INSERT INTO product_variants (product_id,variant_sku,size) VALUES (:product,:sku,:size)');
             $variantSize = trim((string) ($_POST['size'] ?? ''));
@@ -185,6 +194,13 @@ foreach ($inventory as $inventoryRow) {
     $inventoryGroups[$groupKey]['stock'] += (int) $inventoryRow['stock_quantity'];
     $inventoryGroups[$groupKey]['available'] += max(0, (int) $inventoryRow['stock_quantity'] - (int) $inventoryRow['reserved_quantity']);
     $inventoryGroups[$groupKey]['variants'][] = $inventoryRow;
+}
+if ($view === 'users' && is_admin()) {
+    db()->exec("DELETE u FROM users u
+                LEFT JOIN reservations r ON r.user_id = u.id
+                WHERE u.role = 'student' AND u.status = 'suspended'
+                  AND u.updated_at < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 6 MONTH)
+                  AND r.id IS NULL");
 }
 $users=db()->query("SELECT u.*,(SELECT COUNT(*) FROM reservations r WHERE r.user_id=u.id) orders FROM users u WHERE u.role='student' ORDER BY u.created_at DESC")->fetchAll();
 if ($view === 'products') {

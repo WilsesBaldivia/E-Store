@@ -17,13 +17,105 @@ document.addEventListener('DOMContentLoaded', () => {
     if (legacySkuLabel?.tagName === 'LABEL') legacySkuLabel.hidden = true;
   }
 
+  const productForm = document.querySelector('input[name="action"][value="product"]')?.closest('form');
+  if (productForm) {
+    const productNameField = productForm.querySelector('input[name="name"]');
+    const productNameLabel = productNameField?.previousElementSibling;
+    if (productNameField) {
+      productNameField.required = false;
+      productNameField.disabled = true;
+      productNameField.hidden = true;
+    }
+    if (productNameLabel?.tagName === 'LABEL') productNameLabel.hidden = true;
+
+    const categorySelect = productForm.querySelector('select[name="category_id"]');
+    if (categorySelect && !productForm.querySelector('[name="gender"]')) {
+      const genderLabel = document.createElement('label');
+      genderLabel.textContent = 'Intended for';
+      const genderSelect = document.createElement('select');
+      genderSelect.name = 'gender';
+      genderSelect.innerHTML = '<option value="all">All students</option><option value="girls">Girls</option><option value="boys">Boys</option>';
+      categorySelect.insertAdjacentElement('afterend', genderSelect);
+      genderSelect.insertAdjacentElement('beforebegin', genderLabel);
+    }
+  }
+
   const button = document.querySelector('[data-menu]');
   const sidebar = document.querySelector('[data-sidebar]');
   button?.addEventListener('click', () => sidebar?.classList.toggle('open'));
 
+  const reservationsPanel = document.querySelector('.reservations-panel');
+  const reservationRows = [...document.querySelectorAll('.reservations-table tbody tr')];
+  if (reservationsPanel && reservationRows.length) {
+    reservationRows.forEach((row, index) => {
+      row.dataset.originalOrder = String(index);
+      const terminal = row.querySelector('.badge.cancelled, .badge.claimed');
+      if (!terminal) return;
+      const select = row.querySelector('.reservation-action select');
+      const save = row.querySelector('.reservation-action button');
+      if (select) select.disabled = true;
+      if (save) {
+        save.disabled = true;
+        save.innerHTML = '<i class="bx bx-lock"></i> Locked';
+      }
+      row.querySelector('.reservation-action')?.classList.add('is-locked');
+    });
+
+    const toolbar = document.createElement('div');
+    toolbar.className = 'reservation-tools';
+    toolbar.innerHTML = '<label class="reservation-search"><i class="bx bx-search"></i><input type="search" placeholder="Search voucher or student" aria-label="Search reservations"></label><label><span>Status</span><select data-reservation-status><option value="all">All statuses</option><option value="pending">Pending</option><option value="processing">Processing</option><option value="ready">Ready</option><option value="claimed">Claimed</option><option value="cancelled">Cancelled</option></select></label><label><span>Sort by</span><select data-reservation-sort><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="total-high">Highest total</option><option value="total-low">Lowest total</option><option value="student">Student A–Z</option></select></label>';
+    reservationsPanel.querySelector('.data-view-heading')?.insertAdjacentElement('afterend', toolbar);
+    const search = toolbar.querySelector('input');
+    const status = toolbar.querySelector('[data-reservation-status]');
+    const sort = toolbar.querySelector('[data-reservation-sort]');
+    const tbody = reservationsPanel.querySelector('tbody');
+    const counter = reservationsPanel.querySelector('.data-count');
+    const empty = document.createElement('p');
+    empty.className = 'reservation-empty';
+    empty.textContent = 'No reservations match your search or filter.';
+    empty.hidden = true;
+    reservationsPanel.querySelector('.table-wrap')?.insertAdjacentElement('afterend', empty);
+
+    const cellText = (row, label) => row.querySelector(`[data-label="${label}"]`)?.textContent.trim() || '';
+    const applyReservations = () => {
+      const query = search.value.trim().toLowerCase();
+      const selectedStatus = status.value;
+      const sorted = [...reservationRows].sort((a, b) => {
+        if (sort.value === 'oldest') return Date.parse(cellText(a, 'Date')) - Date.parse(cellText(b, 'Date'));
+        if (sort.value === 'total-high' || sort.value === 'total-low') {
+          const amount = row => Number(cellText(row, 'Total').replace(/[^0-9.]/g, '')) || 0;
+          return sort.value === 'total-high' ? amount(b) - amount(a) : amount(a) - amount(b);
+        }
+        if (sort.value === 'student') return cellText(a, 'Student').localeCompare(cellText(b, 'Student'));
+        return Date.parse(cellText(b, 'Date')) - Date.parse(cellText(a, 'Date'));
+      });
+      sorted.forEach(row => tbody.appendChild(row));
+      let visible = 0;
+      reservationRows.forEach(row => {
+        const rowStatus = row.querySelector('.badge')?.textContent.trim().toLowerCase() || '';
+        const searchable = `${cellText(row, 'Voucher')} ${cellText(row, 'Student')}`.toLowerCase();
+        const matches = searchable.includes(query) && (selectedStatus === 'all' || rowStatus === selectedStatus);
+        row.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      if (counter) counter.textContent = `${visible} ${visible === 1 ? 'order' : 'orders'}`;
+      empty.hidden = visible !== 0;
+    };
+    search.addEventListener('input', applyReservations);
+    status.addEventListener('change', applyReservations);
+    sort.addEventListener('change', applyReservations);
+  }
+
   const userSearch = document.querySelector('[data-user-search]');
   const userRows = [...document.querySelectorAll('[data-user-row]')];
   const emptyMessage = document.querySelector('[data-user-empty]');
+  const userDirectoryHead = document.querySelector('.user-directory-head>div');
+  if (userDirectoryHead) {
+    const cleanupNote = document.createElement('small');
+    cleanupNote.className = 'account-cleanup-note';
+    cleanupNote.innerHTML = '<i class="bx bx-time-five"></i> Suspended accounts without reservations are deleted after 6 months.';
+    userDirectoryHead.appendChild(cleanupNote);
+  }
   userSearch?.addEventListener('input', () => {
     const query = userSearch.value.trim().toLowerCase();
     let visible = 0;
