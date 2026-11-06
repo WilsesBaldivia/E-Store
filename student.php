@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $flash = get_flash();
 $levelLabels = ['elementary' => 'Elementary', 'jhs' => 'Junior High School', 'shs' => 'Senior High School', 'college' => 'College'];
-$fullName = trim($user['first_name'] . ' ' . $user['last_name']);
+$fullName = format_person_name($user['first_name'] . ' ' . $user['last_name']);
 
 $cartRows = [];
 if ($_SESSION['cart'] && in_array($view, ['cart', 'checkout'], true)) {
@@ -366,7 +366,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
 
     <?php if ($view === 'home'): ?>
       <section class="student-welcome">
-        <div><span class="overline">Welcome back</span><h2>Everything you need for School,<br>All in one place.</h2><p>Reserve official CSCQC uniforms and learning materials, then claim them conveniently on campus.</p><div class="welcome-actions"><a class="welcome-primary" href="student?view=shop"><i class="bx bx-store"></i> Browse products</a><a class="welcome-secondary" href="student?view=history">View reservations <i class="bx bx-right-arrow-alt"></i></a></div></div>
+        <div><span class="overline">Welcome back</span><h2>Everything you need for School, All in one place.</h2><p>Reserve official CSCQC uniforms and learning materials, then claim them conveniently on campus.</p><div class="welcome-actions"><a class="welcome-primary" href="student?view=shop"><i class="bx bx-store"></i> Browse products</a><a class="welcome-secondary" href="student?view=history">View reservations <i class="bx bx-right-arrow-alt"></i></a></div></div>
         <div class="welcome-showcase" aria-hidden="true">
           <span class="showcase-label"><i class="bx bx-check-shield"></i> Official essentials</span>
           <figure class="showcase-uniform"><img src="assets/images/products/uniform-shs-clean.png" alt=""></figure>

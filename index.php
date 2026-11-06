@@ -110,6 +110,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $form['student_id'] = strtoupper($form['student_id']);
         $form['email'] = strtolower($form['email']);
+        $form['first_name'] = format_person_name($form['first_name']);
+        $form['last_name'] = format_person_name($form['last_name']);
         $password = (string) ($_POST['password'] ?? '');
         $confirmation = (string) ($_POST['password_confirmation'] ?? '');
 

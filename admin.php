@@ -182,6 +182,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     redirect('manage?view=' . urlencode($view));
 }
 $flash=get_flash();
+$metrics = ['pending' => 0, 'low' => 0, 'students' => 0, 'products' => 0];
+$reservations = $inventory = $inventoryGroups = $users = $categories = [];
+$dailyRevenue = $claimedReservations = $dashboardRecent = $dashboardLowStock = $monthlyRevenue = [];
+$report = ['total_reservations' => 0, 'claimed_count' => 0, 'open_count' => 0, 'claimed_revenue' => 0, 'open_value' => 0];
+$todayReservations = $readyReservations = 0;
+$monthlyMaximum = 1.0;
+if ($view === 'dashboard') {
 $metrics=[
  'pending'=>(int)db()->query("SELECT COUNT(*) FROM reservations WHERE status IN ('pending','processing')")->fetchColumn(),
  'low'=>(int)db()->query("SELECT COUNT(*) FROM inventory i
@@ -193,7 +200,11 @@ $metrics=[
  'students'=>(int)db()->query("SELECT COUNT(*) FROM users WHERE role='student'")->fetchColumn(),
  'products'=>(int)db()->query('SELECT COUNT(*) FROM products WHERE is_active=1')->fetchColumn(),
 ];
+}
+if (in_array($view, ['dashboard', 'reservations'], true)) {
 $reservations=db()->query("SELECT r.*, CONCAT(u.first_name,' ',u.last_name) student_name,u.student_id FROM reservations r JOIN users u ON u.id=r.user_id ORDER BY r.created_at DESC LIMIT 100")->fetchAll();
+}
+if (in_array($view, ['dashboard', 'inventory'], true)) {
 $inventory=db()->query("SELECT pv.id variant_id,p.name,p.sku,pv.size,p.base_price,i.stock_quantity,i.reserved_quantity,i.reorder_level,c.name category
                         FROM inventory i
                         JOIN product_variants pv ON pv.id=i.variant_id
@@ -221,6 +232,7 @@ foreach ($inventory as $inventoryRow) {
     $inventoryGroups[$groupKey]['available'] += max(0, (int) $inventoryRow['stock_quantity'] - (int) $inventoryRow['reserved_quantity']);
     $inventoryGroups[$groupKey]['variants'][] = $inventoryRow;
 }
+}
 if ($view === 'users' && is_admin()) {
     db()->exec("DELETE u FROM users u
                 LEFT JOIN reservations r ON r.user_id = u.id
@@ -228,18 +240,23 @@ if ($view === 'users' && is_admin()) {
                   AND u.updated_at < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 6 MONTH)
                   AND r.id IS NULL");
 }
-$users=db()->query("SELECT u.*,(SELECT COUNT(*) FROM reservations r WHERE r.user_id=u.id) orders FROM users u WHERE u.role='student' ORDER BY u.created_at DESC")->fetchAll();
+if ($view === 'users') {
+    $users=db()->query("SELECT u.*,(SELECT COUNT(*) FROM reservations r WHERE r.user_id=u.id) orders FROM users u WHERE u.role='student' ORDER BY u.created_at DESC")->fetchAll();
+}
 if ($view === 'products') {
     db()->exec("INSERT INTO categories (name,slug,description,is_active)
                 VALUES ('P.E. Uniforms','pe-uniforms','Official physical education uniforms',1)
                 ON DUPLICATE KEY UPDATE name=VALUES(name),description=VALUES(description),is_active=1");
 }
-$categories=db()->query('SELECT * FROM categories WHERE is_active=1 ORDER BY name')->fetchAll();
+if ($view === 'products') {
+    $categories=db()->query('SELECT * FROM categories WHERE is_active=1 ORDER BY name')->fetchAll();
+}
 $reportFrom = (string) ($_GET['from'] ?? date('Y-m-01'));
 $reportTo = (string) ($_GET['to'] ?? date('Y-m-d'));
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $reportFrom) || !strtotime($reportFrom)) $reportFrom = date('Y-m-01');
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $reportTo) || !strtotime($reportTo)) $reportTo = date('Y-m-d');
 if ($reportFrom > $reportTo) [$reportFrom, $reportTo] = [$reportTo, $reportFrom];
+if (in_array($view, ['dashboard', 'reports'], true)) {
 $reportQuery = db()->prepare(
     "SELECT COUNT(*) total_reservations,
             COALESCE(SUM(status = 'claimed'), 0) claimed_count,
@@ -250,6 +267,8 @@ $reportQuery = db()->prepare(
 );
 $reportQuery->execute(['date_from' => $reportFrom, 'date_to' => $reportTo]);
 $report = $reportQuery->fetch();
+}
+if ($view === 'reports') {
 $dailyQuery = db()->prepare(
     "SELECT DATE(COALESCE(claimed_at, created_at)) report_date, COUNT(*) claimed_orders, SUM(total_amount) revenue
      FROM reservations WHERE status = 'claimed' AND DATE(COALESCE(claimed_at, created_at)) BETWEEN :date_from AND :date_to
@@ -266,6 +285,8 @@ $claimedQuery = db()->prepare(
 );
 $claimedQuery->execute(['date_from' => $reportFrom, 'date_to' => $reportTo]);
 $claimedReservations = $claimedQuery->fetchAll();
+}
+if ($view === 'dashboard') {
 $todayReservations = (int) db()->query("SELECT COUNT(*) FROM reservations WHERE DATE(created_at) = CURDATE()")->fetchColumn();
 $readyReservations = (int) db()->query("SELECT COUNT(*) FROM reservations WHERE status = 'ready'")->fetchColumn();
 $dashboardRecent = array_slice($reservations, 0, 6);
@@ -287,6 +308,7 @@ for ($offset = 5; $offset >= 0; $offset--) {
     $monthlyRevenue[] = ['label' => $month->format('M'), 'amount' => $monthlyMap[$month->format('Y-m')] ?? 0.0];
 }
 $monthlyMaximum = max(1.0, ...array_column($monthlyRevenue, 'amount'));
+}
 $viewDescriptions = [
     'dashboard' => 'A clear overview of today\'s store activity.',
     'reservations' => 'Review, prepare, and complete student orders.',

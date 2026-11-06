@@ -38,6 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
       genderSelect.innerHTML = '<option value="all">All students</option><option value="girls">Girls</option><option value="boys">Boys</option>';
       categorySelect.insertAdjacentElement('afterend', genderSelect);
       genderSelect.insertAdjacentElement('beforebegin', genderLabel);
+
+      const updateGenderField = () => {
+        const categoryName = categorySelect.options[categorySelect.selectedIndex]?.textContent.trim().toLowerCase() || '';
+        const isUniform = categoryName.includes('uniform');
+        genderLabel.hidden = !isUniform;
+        genderSelect.hidden = !isUniform;
+        genderSelect.disabled = !isUniform;
+        if (!isUniform) genderSelect.value = 'all';
+      };
+      categorySelect.addEventListener('change', updateGenderField);
+      updateGenderField();
     }
 
     const descriptionField = productForm.querySelector('textarea[name="description"]');
@@ -106,13 +117,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const toolbar = document.createElement('div');
     toolbar.className = 'reservation-tools';
-    toolbar.innerHTML = '<label class="reservation-search"><i class="bx bx-search"></i><input type="search" placeholder="Search voucher or student" aria-label="Search reservations"></label><label><span>Status</span><select data-reservation-status><option value="all">All statuses</option><option value="pending">Pending</option><option value="processing">Processing</option><option value="ready">Ready</option><option value="claimed">Claimed</option><option value="cancelled">Cancelled</option></select></label><label><span>Sort by</span><select data-reservation-sort><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="total-high">Highest total</option><option value="total-low">Lowest total</option><option value="student">Student A–Z</option></select></label>';
+    toolbar.innerHTML = '<label class="reservation-search"><i class="bx bx-search"></i><input type="search" placeholder="Search voucher or student" aria-label="Search reservations"></label><label class="reservation-status-select"><span>Status</span><select data-reservation-status><option value="all">All statuses</option><option value="pending">Pending</option><option value="processing">Processing</option><option value="ready">Ready</option><option value="claimed">Claimed</option><option value="cancelled">Cancelled</option></select></label><label><span>Sort by</span><select data-reservation-sort><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="total-high">Highest total</option><option value="total-low">Lowest total</option><option value="student">Student A–Z</option></select></label>';
     reservationsPanel.querySelector('.data-view-heading')?.insertAdjacentElement('afterend', toolbar);
     const search = toolbar.querySelector('input');
     const status = toolbar.querySelector('[data-reservation-status]');
     const sort = toolbar.querySelector('[data-reservation-sort]');
     const tbody = reservationsPanel.querySelector('tbody');
     const counter = reservationsPanel.querySelector('.data-count');
+    const statusOrder = ['all', 'pending', 'processing', 'ready', 'claimed', 'cancelled'];
+    const statusLabels = { all: 'All', pending: 'Pending', processing: 'Processing', ready: 'Ready', claimed: 'Claimed', cancelled: 'Cancelled' };
+    const statusCounts = reservationRows.reduce((counts, row) => {
+      const rowStatus = row.querySelector('.badge')?.textContent.trim().toLowerCase() || '';
+      counts[rowStatus] = (counts[rowStatus] || 0) + 1;
+      return counts;
+    }, {});
+    const statusTabs = document.createElement('div');
+    statusTabs.className = 'reservation-status-tabs';
+    statusTabs.setAttribute('aria-label', 'Filter reservations by status');
+    statusTabs.innerHTML = statusOrder.map((value) => {
+      const count = value === 'all' ? reservationRows.length : (statusCounts[value] || 0);
+      return `<button type="button" data-status-tab="${value}" class="${value === 'all' ? 'active' : ''}"><span>${statusLabels[value]}</span><b>${count}</b></button>`;
+    }).join('');
+    counter?.replaceWith(statusTabs);
     const empty = document.createElement('p');
     empty.className = 'reservation-empty';
     empty.textContent = 'No reservations match your search or filter.';
@@ -141,9 +167,17 @@ document.addEventListener('DOMContentLoaded', () => {
         row.hidden = !matches;
         if (matches) visible += 1;
       });
-      if (counter) counter.textContent = `${visible} ${visible === 1 ? 'order' : 'orders'}`;
+      statusTabs.querySelectorAll('[data-status-tab]').forEach((tab) => {
+        tab.classList.toggle('active', tab.dataset.statusTab === selectedStatus);
+      });
       empty.hidden = visible !== 0;
     };
+    statusTabs.addEventListener('click', (event) => {
+      const tab = event.target.closest('[data-status-tab]');
+      if (!tab) return;
+      status.value = tab.dataset.statusTab;
+      applyReservations();
+    });
     search.addEventListener('input', applyReservations);
     status.addEventListener('change', applyReservations);
     sort.addEventListener('change', applyReservations);

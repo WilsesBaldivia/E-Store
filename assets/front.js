@@ -1,4 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('input[name="first_name"], input[name="last_name"]').forEach((field) => {
+    field.setAttribute('autocapitalize', 'words');
+    field.addEventListener('blur', () => {
+      field.value = field.value
+        .trim()
+        .toLocaleLowerCase()
+        .replace(/(^|[\s'-])\p{L}/gu, (letter) => letter.toLocaleUpperCase());
+    });
+  });
+
   document.querySelectorAll('[data-year]').forEach((year) => {
     year.textContent = new Date().getFullYear();
   });

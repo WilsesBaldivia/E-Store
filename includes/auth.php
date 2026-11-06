@@ -24,6 +24,14 @@ function h(?string $value): string
     return htmlspecialchars($value ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+function format_person_name(string $value): string
+{
+    $value = preg_replace('/\s+/u', ' ', trim($value)) ?? trim($value);
+    return function_exists('mb_convert_case')
+        ? mb_convert_case($value, MB_CASE_TITLE, 'UTF-8')
+        : ucwords(strtolower($value));
+}
+
 function redirect(string $location): void
 {
     header('Location: ' . $location);
