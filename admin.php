@@ -142,12 +142,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $flash=get_flash();
 $metrics=[
  'pending'=>(int)db()->query("SELECT COUNT(*) FROM reservations WHERE status IN ('pending','processing')")->fetchColumn(),
- 'low'=>(int)db()->query('SELECT COUNT(*) FROM inventory WHERE stock_quantity-reserved_quantity <= reorder_level')->fetchColumn(),
+ 'low'=>(int)db()->query("SELECT COUNT(*) FROM inventory i
+                         JOIN product_variants pv ON pv.id=i.variant_id
+                         JOIN products p ON p.id=pv.product_id
+                         WHERE p.is_active=1 AND pv.is_active=1
+                           AND p.sku NOT IN ('PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET')
+                           AND i.stock_quantity-i.reserved_quantity <= i.reorder_level")->fetchColumn(),
  'students'=>(int)db()->query("SELECT COUNT(*) FROM users WHERE role='student'")->fetchColumn(),
  'products'=>(int)db()->query('SELECT COUNT(*) FROM products WHERE is_active=1')->fetchColumn(),
 ];
 $reservations=db()->query("SELECT r.*, CONCAT(u.first_name,' ',u.last_name) student_name,u.student_id FROM reservations r JOIN users u ON u.id=r.user_id ORDER BY r.created_at DESC LIMIT 100")->fetchAll();
-$inventory=db()->query("SELECT pv.id variant_id,p.name,p.sku,pv.size,p.base_price,i.stock_quantity,i.reserved_quantity,i.reorder_level,c.name category FROM inventory i JOIN product_variants pv ON pv.id=i.variant_id JOIN products p ON p.id=pv.product_id JOIN categories c ON c.id=p.category_id ORDER BY p.name,pv.size")->fetchAll();
+$inventory=db()->query("SELECT pv.id variant_id,p.name,p.sku,pv.size,p.base_price,i.stock_quantity,i.reserved_quantity,i.reorder_level,c.name category
+                        FROM inventory i
+                        JOIN product_variants pv ON pv.id=i.variant_id
+                        JOIN products p ON p.id=pv.product_id
+                        JOIN categories c ON c.id=p.category_id
+                        WHERE p.is_active=1 AND pv.is_active=1
+                          AND p.sku NOT IN ('PE-ELEM-SET','PE-JHS-SET','PE-SHS-SET')
+                        ORDER BY p.name,pv.size")->fetchAll();
 $users=db()->query("SELECT u.*,(SELECT COUNT(*) FROM reservations r WHERE r.user_id=u.id) orders FROM users u WHERE u.role='student' ORDER BY u.created_at DESC")->fetchAll();
 $categories=db()->query('SELECT * FROM categories WHERE is_active=1 ORDER BY name')->fetchAll();
 $reportFrom = (string) ($_GET['from'] ?? date('Y-m-01'));

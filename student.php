@@ -28,7 +28,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'SELECT pv.id, p.academic_level, (i.stock_quantity - i.reserved_quantity) AS available
              FROM product_variants pv JOIN products p ON p.id = pv.product_id
              JOIN inventory i ON i.variant_id = pv.id
-             WHERE pv.id = :id AND pv.is_active = 1 AND p.is_active = 1'
+             WHERE pv.id = :id AND pv.is_active = 1 AND p.is_active = 1
+               AND p.sku NOT IN (\'PE-ELEM-SET\', \'PE-JHS-SET\', \'PE-SHS-SET\')'
         );
         $check->execute(['id' => $variantId]);
         $variant = $check->fetch();
@@ -179,6 +180,7 @@ $productRows = db()->query(
      JOIN product_variants pv ON pv.product_id = p.id
      JOIN inventory i ON i.variant_id = pv.id
      WHERE p.is_active = 1 AND pv.is_active = 1
+       AND p.sku NOT IN ('PE-ELEM-SET', 'PE-JHS-SET', 'PE-SHS-SET')
      ORDER BY FIELD(c.slug, 'uniforms', 'books'), FIELD(p.academic_level, 'elementary', 'jhs', 'shs', 'college'),
               CASE WHEN c.slug = 'books' THEN FIELD(p.sku, 'BK-K1-SET', 'BK-K2-SET', 'BK-G01-SET', 'BK-G02-SET', 'BK-G03-SET', 'BK-G04-SET', 'BK-G05-SET', 'BK-G06-SET', 'BK-G07-SET', 'BK-G08-SET', 'BK-G09-SET', 'BK-G10-SET', 'BK-G11-SET', 'BK-G12-SET') ELSE 0 END,
               p.name,
@@ -214,7 +216,7 @@ $catalogGroups = [
     'pe' => [
         'name' => 'P.E. Uniform',
         'category' => 'Physical Education',
-        'description' => 'Choose your academic level and P.E. uniform size.',
+        'description' => 'Official P.E. uniform exclusively for College students.',
         'icon' => 'bx-run',
         'item_label' => 'P.E. size',
         'options' => [],
@@ -252,9 +254,6 @@ $catalogImageFiles = [
     'TYPEB-COL-06' => 'typeb-department-06-clean',
     'TYPEB-COL-08' => 'typeb-department-08-clean',
     'TYPEB-COL-09' => 'typeb-department-09-clean',
-    'PE-ELEM-SET' => 'pe-college-all-departments',
-    'PE-JHS-SET' => 'pe-college-all-departments',
-    'PE-SHS-SET' => 'pe-college-all-departments',
     'PE-COL-SET' => 'pe-college-all-departments',
 ];
 
