@@ -172,6 +172,11 @@ $cartTotal = array_sum(array_map(static function (array $row): float {
 
 $catalogGroups = [];
 if ($view === 'shop') {
+ensure_product_media_table();
+$uploadedProductImages = array_fill_keys(
+    array_map('intval', db()->query('SELECT product_id FROM product_media')->fetchAll(PDO::FETCH_COLUMN)),
+    true
+);
 $productRows = db()->query(
     "SELECT p.id AS product_id, p.sku, pv.id AS variant_id, pv.size, pv.color, p.name, p.description,
             p.academic_level, p.base_price, pv.price_override, p.image_path, c.name AS category, c.slug AS category_slug,
@@ -272,7 +277,9 @@ foreach ($productRows as $row) {
         continue;
     }
     $productImages = $productImagesByProduct[(int) $row['product_id']] ?? [];
-    $imagePath = $productImages[0]['path'] ?? $row['image_path'];
+    $imagePath = isset($uploadedProductImages[(int) $row['product_id']])
+        ? 'product-image.php?id=' . (int) $row['product_id']
+        : ($productImages[0]['path'] ?? $row['image_path']);
     $automaticImageBase = $catalogImageFiles[$row['sku']] ?? null;
     if (!$imagePath && $automaticImageBase) {
         foreach (['jpg', 'jpeg', 'png', 'webp'] as $extension) {

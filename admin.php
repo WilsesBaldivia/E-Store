@@ -5,6 +5,7 @@ require_once __DIR__ . '/includes/db.php';
 $staff = require_staff();
 $view = (string) ($_GET['view'] ?? 'dashboard');
 $view = in_array($view, ['dashboard','reservations','inventory','products','users','reports'], true) ? $view : 'dashboard';
+if ($view === 'products') ensure_product_media_table();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verify_csrf()) { set_flash('error', 'Form session expired.'); redirect('admin.php?view=' . urlencode($view)); }
@@ -141,6 +142,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert = $pdo->prepare('INSERT INTO products (category_id,sku,name,description,academic_level,base_price) VALUES (:category,:sku,:name,:description,:level,:price)');
             $insert->execute(['category'=>$categoryId,'sku'=>$sku,'name'=>$productName,'description'=>trim((string)$_POST['description']),'level'=>$level,'price'=>(float)$_POST['price']]);
             $productId=(int)$pdo->lastInsertId();
+            $uploadedImage = $_FILES['product_image'] ?? null;
+            if (is_array($uploadedImage) && (int) ($uploadedImage['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                if ((int) $uploadedImage['error'] !== UPLOAD_ERR_OK || !is_uploaded_file((string) $uploadedImage['tmp_name'])) {
+                    throw new RuntimeException('The product picture could not be uploaded.');
+                }
+                if ((int) $uploadedImage['size'] > 5 * 1024 * 1024) {
+                    throw new RuntimeException('The product picture must be 5 MB or smaller.');
+                }
+                $imageType = (new finfo(FILEINFO_MIME_TYPE))->file((string) $uploadedImage['tmp_name']);
+                if (!in_array($imageType, ['image/jpeg','image/png','image/webp'], true)) {
+                    throw new RuntimeException('Use a JPG, PNG, or WebP product picture.');
+                }
+                $imageData = file_get_contents((string) $uploadedImage['tmp_name']);
+                if ($imageData === false) throw new RuntimeException('The product picture could not be read.');
+                $mediaInsert = $pdo->prepare('INSERT INTO product_media (product_id,mime_type,image_data) VALUES (:product,:mime,:data) ON DUPLICATE KEY UPDATE mime_type=VALUES(mime_type),image_data=VALUES(image_data)');
+                $mediaInsert->bindValue(':product', $productId, PDO::PARAM_INT);
+                $mediaInsert->bindValue(':mime', $imageType);
+                $mediaInsert->bindValue(':data', $imageData, PDO::PARAM_LOB);
+                $mediaInsert->execute();
+            }
             $variant=$pdo->prepare('INSERT INTO product_variants (product_id,variant_sku,size) VALUES (:product,:sku,:size)');
             $variantSize = trim((string) ($_POST['size'] ?? ''));
             $variantCode = strtoupper(trim((string) preg_replace('/[^a-z0-9]+/i', '-', $variantSize !== '' ? $variantSize : 'STD'), '-'));
@@ -151,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         set_flash('success', 'Changes saved successfully.');
     } catch (Throwable $exception) {
         if (isset($pdo) && $pdo->inTransaction()) $pdo->rollBack();
-        set_flash('error', 'The change could not be saved. Check the submitted values.');
+        set_flash('error', $exception instanceof RuntimeException ? $exception->getMessage() : 'The change could not be saved. Check the submitted values.');
     }
     redirect('admin.php?view=' . urlencode($view));
 }

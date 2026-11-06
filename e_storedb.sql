@@ -74,6 +74,20 @@ CREATE TABLE IF NOT EXISTS `products` (
 ALTER TABLE `products`
   MODIFY COLUMN `academic_level` enum('all','elementary','college','shs','jhs') NOT NULL DEFAULT 'all';
 
+-- Uploaded product pictures are stored in MySQL so they remain available
+-- across Railway deployments.
+CREATE TABLE IF NOT EXISTS `product_media` (
+  `product_id` int unsigned NOT NULL,
+  `mime_type` varchar(50) NOT NULL,
+  `image_data` longblob NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`product_id`),
+  CONSTRAINT `fk_product_media_product`
+    FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+    ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `product_images` (
   `id` int unsigned NOT NULL AUTO_INCREMENT,
   `product_id` int unsigned NOT NULL,

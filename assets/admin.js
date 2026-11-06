@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const productForm = document.querySelector('input[name="action"][value="product"]')?.closest('form');
   if (productForm) {
+    productForm.enctype = 'multipart/form-data';
     const productNameField = productForm.querySelector('input[name="name"]');
     const productNameLabel = productNameField?.previousElementSibling;
     if (productNameField) {
@@ -37,6 +38,48 @@ document.addEventListener('DOMContentLoaded', () => {
       genderSelect.innerHTML = '<option value="all">All students</option><option value="girls">Girls</option><option value="boys">Boys</option>';
       categorySelect.insertAdjacentElement('afterend', genderSelect);
       genderSelect.insertAdjacentElement('beforebegin', genderLabel);
+    }
+
+    const descriptionField = productForm.querySelector('textarea[name="description"]');
+    if (descriptionField && !productForm.querySelector('[name="product_image"]')) {
+      const pictureLabel = document.createElement('label');
+      pictureLabel.textContent = 'Product picture';
+      const upload = document.createElement('div');
+      upload.className = 'product-picture-upload';
+      upload.innerHTML = '<input id="productPicture" type="file" name="product_image" accept="image/jpeg,image/png,image/webp"><label class="picture-button" for="productPicture"><i class="bx bx-image-add"></i><span>Choose picture</span></label><div class="picture-preview" hidden><img alt="Product picture preview"><button type="button" aria-label="Remove selected picture"><i class="bx bx-x"></i></button></div><small>JPG, PNG, or WebP · Maximum 5 MB</small>';
+      descriptionField.insertAdjacentElement('afterend', pictureLabel);
+      pictureLabel.insertAdjacentElement('afterend', upload);
+      const fileInput = upload.querySelector('input');
+      const buttonText = upload.querySelector('.picture-button span');
+      const preview = upload.querySelector('.picture-preview');
+      const previewImage = preview.querySelector('img');
+      const clearPicture = preview.querySelector('button');
+      const resetPicture = () => {
+        fileInput.value = '';
+        previewImage.removeAttribute('src');
+        preview.hidden = true;
+        buttonText.textContent = 'Choose picture';
+      };
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        if (!file) return resetPicture();
+        if (file.size > 5 * 1024 * 1024) {
+          window.alert('Please choose a picture that is 5 MB or smaller.');
+          return resetPicture();
+        }
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+          window.alert('Please choose a JPG, PNG, or WebP picture.');
+          return resetPicture();
+        }
+        buttonText.textContent = file.name;
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+          previewImage.src = String(reader.result);
+          preview.hidden = false;
+        });
+        reader.readAsDataURL(file);
+      });
+      clearPicture.addEventListener('click', resetPicture);
     }
   }
 
