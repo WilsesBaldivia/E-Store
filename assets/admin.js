@@ -16,6 +16,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (emptyMessage) emptyMessage.hidden = visible !== 0;
   });
+
+  const logoutForm = document.querySelector('[data-admin-logout-form]');
+  const logoutModal = document.querySelector('[data-admin-logout-modal]');
+  const cancelLogout = logoutModal?.querySelector('[data-admin-logout-cancel]');
+  const confirmLogout = logoutModal?.querySelector('[data-admin-logout-confirm]');
+
+  const closeLogoutModal = () => {
+    if (!logoutModal) return;
+    logoutModal.hidden = true;
+    logoutForm?.querySelector('button[type="submit"]')?.focus();
+  };
+
+  logoutForm?.addEventListener('submit', (event) => {
+    if (logoutForm.dataset.confirmed === 'true' || !logoutModal) return;
+    event.preventDefault();
+    logoutModal.hidden = false;
+    cancelLogout?.focus();
+  });
+  cancelLogout?.addEventListener('click', closeLogoutModal);
+  confirmLogout?.addEventListener('click', () => {
+    if (!logoutForm) return;
+    logoutForm.dataset.confirmed = 'true';
+    logoutForm.requestSubmit();
+  });
+  logoutModal?.addEventListener('click', (event) => {
+    if (event.target === logoutModal) closeLogoutModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && logoutModal && !logoutModal.hidden) closeLogoutModal();
+  });
 });
 
 window.addEventListener('pageshow', (event) => {
