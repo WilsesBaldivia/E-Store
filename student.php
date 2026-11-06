@@ -35,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
              FROM product_variants pv JOIN products p ON p.id = pv.product_id
              JOIN inventory i ON i.variant_id = pv.id
              WHERE pv.id = :id AND pv.is_active = 1 AND p.is_active = 1
-               AND p.sku NOT IN (\'PE-ELEM-SET\', \'PE-JHS-SET\', \'PE-SHS-SET\')'
+               AND p.sku <> \'PE-ELEM-SET\''
         );
         $check->execute(['id' => $variantId]);
         $variant = $check->fetch();
@@ -180,6 +180,7 @@ $cartTotal = array_sum(array_map(static function (array $row): float {
 
 $catalogGroups = [];
 if ($view === 'shop') {
+ensure_student_catalog_choices();
 ensure_product_media_table();
 $uploadedProductImages = array_fill_keys(
     array_map('intval', db()->query('SELECT product_id FROM product_media')->fetchAll(PDO::FETCH_COLUMN)),
@@ -193,7 +194,7 @@ $productRows = db()->query(
      JOIN product_variants pv ON pv.product_id = p.id
      JOIN inventory i ON i.variant_id = pv.id
      WHERE p.is_active = 1 AND pv.is_active = 1
-       AND p.sku NOT IN ('PE-ELEM-SET', 'PE-JHS-SET', 'PE-SHS-SET')
+       AND p.sku <> 'PE-ELEM-SET'
      ORDER BY FIELD(c.slug, 'uniforms', 'books'), FIELD(p.academic_level, 'elementary', 'jhs', 'shs', 'college'),
               CASE WHEN c.slug = 'books' THEN FIELD(p.sku, 'BK-K1-SET', 'BK-K2-SET', 'BK-G01-SET', 'BK-G02-SET', 'BK-G03-SET', 'BK-G04-SET', 'BK-G05-SET', 'BK-G06-SET', 'BK-G07-SET', 'BK-G08-SET', 'BK-G09-SET', 'BK-G10-SET', 'BK-G11-SET', 'BK-G12-SET') ELSE 0 END,
               p.name,
@@ -229,7 +230,7 @@ $catalogGroups = [
     'pe' => [
         'name' => 'P.E. Uniform',
         'category' => 'Physical Education',
-        'description' => 'Official P.E. uniform exclusively for College students.',
+        'description' => 'Choose the official P.E. uniform for Kinder, Junior High, Senior High, or College.',
         'icon' => 'bx-run',
         'item_label' => 'P.E. size',
         'options' => [],
@@ -256,8 +257,14 @@ $catalogGroups = [
 ];
 $catalogImageFiles = [
     'UNI-ELEM-REG' => 'uniform-elementary',
+    'UNI-ELEM-GIRLS' => 'uniform-elementary',
+    'UNI-ELEM-BOYS' => 'uniform-elementary',
     'UNI-JHS-REG' => 'uniform-jhs-clean',
+    'UNI-JHS-GIRLS' => 'uniform-jhs-clean',
+    'UNI-JHS-BOYS' => 'uniform-jhs-clean',
     'UNI-SHS-REG' => 'uniform-shs-clean',
+    'UNI-SHS-GIRLS' => 'uniform-shs-clean',
+    'UNI-SHS-BOYS' => 'uniform-shs-clean',
     'UNI-COL-REG' => 'uniform-college-department-01',
     'UNI-COL-02' => 'uniform-college-department-02-clean',
     'UNI-COL-03' => 'uniform-college-department-03-clean',
@@ -268,6 +275,9 @@ $catalogImageFiles = [
     'TYPEB-COL-08' => 'typeb-department-08-clean',
     'TYPEB-COL-09' => 'typeb-department-09-clean',
     'PE-COL-SET' => 'pe-college-all-departments',
+    'PE-KINDER-SET' => 'pe-college-all-departments',
+    'PE-JHS-SET' => 'pe-college-all-departments',
+    'PE-SHS-SET' => 'pe-college-all-departments',
 ];
 
 foreach ($productRows as $row) {
@@ -390,24 +400,34 @@ if ($view === 'voucher' && isset($_GET['code'])) {
             if (!in_array('all', $optionLevels, true)) {
                 $selectableLevels = array_intersect_key($selectableLevels, array_flip($optionLevels));
             }
+            if ($groupKey === 'pe' && isset($selectableLevels['elementary'])) {
+                $selectableLevels['elementary'] = 'Kinder';
+            }
             $singleLevel = count($selectableLevels) === 1 ? array_key_first($selectableLevels) : null;
             $departmentChoices = [];
             if ($groupKey === 'typeb') {
                 foreach ($group['options'] as $option) {
-                    $departmentChoices[$option['product_name']] = preg_replace('/^College Type B\s*-\s*/i', '', $option['product_name']);
+                    $choiceKey = $option['academic_level'] . '|' . $option['product_name'];
+                    $departmentChoices[$choiceKey] = [
+                        'value' => $option['product_name'],
+                        'label' => preg_replace('/^College Type B\s*-\s*/i', '', $option['product_name']),
+                        'level' => $option['academic_level'],
+                    ];
                 }
             } elseif ($groupKey === 'uniform') {
                 foreach ($group['options'] as $option) {
-                    if ($option['academic_level'] === 'college') {
-                        $departmentChoices[$option['product_name']] = preg_replace('/^College School Uniform\s*-\s*/i', '', $option['product_name']);
-                    }
+                    $choiceKey = $option['academic_level'] . '|' . $option['product_name'];
+                    $departmentChoices[$choiceKey] = [
+                        'value' => $option['product_name'],
+                        'label' => preg_replace('/^(?:Elementary|Junior High|Senior High|JHS|SHS|College) School Uniform\s*-\s*/i', '', $option['product_name']),
+                        'level' => $option['academic_level'],
+                    ];
                 }
             }
-            $departmentLevel = $groupKey === 'uniform' ? 'college' : '';
-            $initialImagePath = in_array($groupKey, ['typeb', 'books'], true) ? null : $group['image_path'];
+            $initialImagePath = in_array($groupKey, ['typeb', 'books', 'pe'], true) ? null : $group['image_path'];
             $levelBadge = implode(' · ', array_map(static fn (string $level): string => strtoupper(str_replace(['Junior High School', 'Senior High School'], ['JHS', 'SHS'], $level)), $selectableLevels));
         ?>
-          <article class="product-card catalog-group-card">
+          <article class="product-card catalog-group-card" data-catalog-group="<?= h($groupKey) ?>">
             <div class="product-image <?= $groupKey === 'books' ? 'book-green' : '' ?>" data-catalog-image>
               <img data-product-photo src="<?= h($initialImagePath) ?>" alt="<?= h($group['name']) ?>" <?= $initialImagePath ? '' : 'hidden' ?>>
               <i data-product-icon class="bx <?= h($group['icon']) ?>" <?= $initialImagePath ? 'hidden' : '' ?>></i>
@@ -440,11 +460,11 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                   </select>
                 <?php endif; ?>
                 <?php if ($departmentChoices): ?>
-                  <div class="catalog-field" data-department-field <?= $departmentLevel ? 'hidden' : '' ?>>
-                    <label for="department-<?= h($groupKey) ?>">Department</label>
-                    <select id="department-<?= h($groupKey) ?>" data-department-select data-department-level="<?= h($departmentLevel) ?>" <?= $departmentLevel ? 'disabled' : '' ?> required>
-                      <option value="">Choose department</option>
-                      <?php foreach ($departmentChoices as $departmentValue => $departmentLabel): ?><option value="<?= h($departmentValue) ?>"><?= h($departmentLabel) ?></option><?php endforeach; ?>
+                  <div class="catalog-field" data-department-field hidden>
+                    <label for="department-<?= h($groupKey) ?>"><?= $groupKey === 'uniform' ? 'Uniform choice' : 'Department' ?></label>
+                    <select id="department-<?= h($groupKey) ?>" data-department-select disabled required>
+                      <option value=""><?= $groupKey === 'uniform' ? 'Choose girls or boys uniform' : 'Choose department' ?></option>
+                      <?php foreach ($departmentChoices as $departmentChoice): ?><option value="<?= h($departmentChoice['value']) ?>" data-level="<?= h($departmentChoice['level']) ?>"><?= h($departmentChoice['label']) ?></option><?php endforeach; ?>
                     </select>
                   </div>
                 <?php endif; ?>
@@ -453,7 +473,9 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                   <option value="">Choose a size or item</option>
                   <?php foreach ($group['options'] as $option):
                       $optionLabel = $groupKey === 'books' ? $option['product_name'] : $option['size'];
-                      $fallbackLevel = $option['academic_level'] === 'all' ? 'All levels' : ($levelLabels[$option['academic_level']] ?? ucfirst($option['academic_level']));
+                      $fallbackLevel = $groupKey === 'pe' && $option['academic_level'] === 'elementary'
+                          ? 'Kinder'
+                          : ($option['academic_level'] === 'all' ? 'All levels' : ($levelLabels[$option['academic_level']] ?? ucfirst($option['academic_level'])));
                   ?>
                     <option value="<?= $option['id'] ?>" data-level="<?= h($option['academic_level']) ?>" data-department="<?= h($option['product_name']) ?>" data-price="<?= number_format($option['price'], 2, '.', '') ?>" data-available="<?= $option['available'] ?>" data-image="<?= h($option['image_path']) ?>" data-images="<?= h(json_encode($option['images'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)) ?>" <?= $option['available'] < 1 ? 'disabled' : '' ?>>
                       <?= h($fallbackLevel) ?> — <?= h($optionLabel) ?><?= $option['color'] ? ' / ' . h($option['color']) : '' ?> — <?= $option['available'] ?> available

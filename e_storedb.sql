@@ -255,6 +255,12 @@ VALUES
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-ELEM-REG', 'Elementary School Uniform', 'Official Elementary daily uniform set.', 'elementary', 620.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-JHS-REG', 'JHS School Uniform', 'Official Junior High School daily uniform set.', 'jhs', 650.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-REG', 'SHS School Uniform', 'Official Senior High School daily uniform set.', 'shs', 1200.00, NULL, 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-ELEM-GIRLS', 'Elementary School Uniform - Girls', 'Official Elementary school uniform for girls.', 'elementary', 620.00, 'assets/images/products/uniform-elementary.jpg', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-ELEM-BOYS', 'Elementary School Uniform - Boys', 'Official Elementary school uniform for boys.', 'elementary', 620.00, 'assets/images/products/uniform-elementary.jpg', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-JHS-GIRLS', 'Junior High School Uniform - Girls', 'Official Junior High School uniform for girls.', 'jhs', 650.00, 'assets/images/products/uniform-jhs-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-JHS-BOYS', 'Junior High School Uniform - Boys', 'Official Junior High School uniform for boys.', 'jhs', 650.00, 'assets/images/products/uniform-jhs-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-GIRLS', 'Senior High School Uniform - Girls', 'Official Senior High School uniform for girls.', 'shs', 1200.00, 'assets/images/products/uniform-shs-clean.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-SHS-BOYS', 'Senior High School Uniform - Boys', 'Official Senior High School uniform for boys.', 'shs', 1200.00, 'assets/images/products/uniform-shs-clean.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-REG', 'College School Uniform - IT, BA, EDUC', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 1100.00, 'assets/images/products/uniform-college-department-01.jpg', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-02', 'College School Uniform - Criminology', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 2930.00, 'assets/images/products/uniform-college-department-02-clean.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'UNI-COL-03', 'College School Uniform - Tourism (Girls)', 'Official College department daily uniform set. Replace this temporary department name.', 'college', 1100.00, 'assets/images/products/uniform-college-department-03-clean.png', 1),
@@ -265,6 +271,9 @@ VALUES
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-08', 'College Type B - Criminology', 'College Type B polo for Criminology.', 'college', 500.00, 'assets/images/products/typeb-department-08-clean.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'TYPEB-COL-09', 'College Type B - Business Administration', 'College Type B polo for Business Administration.', 'college', 500.00, 'assets/images/products/typeb-department-09-clean.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'uniforms' LIMIT 1), 'PE-COL-SET', 'College P.E. Uniform', 'Official College physical education uniform set for all College departments.', 'college', 620.00, 'assets/images/products/pe-college-all-departments.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'pe-uniforms' LIMIT 1), 'PE-KINDER-SET', 'Kinder P.E. Uniform', 'Official Kinder physical education uniform set.', 'elementary', 620.00, 'assets/images/products/pe-college-all-departments.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'pe-uniforms' LIMIT 1), 'PE-JHS-SET', 'Junior High School P.E. Uniform', 'Official Junior High School physical education uniform set.', 'jhs', 620.00, 'assets/images/products/pe-college-all-departments.png', 1),
+  ((SELECT `id` FROM `categories` WHERE `slug` = 'pe-uniforms' LIMIT 1), 'PE-SHS-SET', 'Senior High School P.E. Uniform', 'Official Senior High School physical education uniform set.', 'shs', 620.00, 'assets/images/products/pe-college-all-departments.png', 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-K1-SET', 'Kinder 1 Book Set', 'Official Kinder 1 book set.', 'elementary', 2189.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-K2-SET', 'Kinder 2 Book Set', 'Official Kinder 2 book set.', 'elementary', 2189.00, NULL, 1),
   ((SELECT `id` FROM `categories` WHERE `slug` = 'books' LIMIT 1), 'BK-G01-SET', 'Grade 1 Book Set', 'Official Grade 1 book set.', 'elementary', 3765.00, NULL, 1),
@@ -352,11 +361,11 @@ UPDATE `products`
 SET `is_active` = 0
 WHERE `sku` = 'UNI-COL-04';
 
--- P.E. uniforms are offered only to College students. Keep legacy rows
--- inactive so existing reservation history remains readable.
+-- Replaced the old combined elementary rows with selectable Kinder P.E. and
+-- separate girls/boys school-uniform products.
 UPDATE `products`
 SET `is_active` = 0
-WHERE `sku` IN ('PE-ELEM-SET', 'PE-JHS-SET', 'PE-SHS-SET');
+WHERE `sku` IN ('PE-ELEM-SET', 'UNI-ELEM-REG', 'UNI-JHS-REG', 'UNI-SHS-REG');
 
 -- Replaced temporary subject-book placeholders with official grade-level sets.
 -- Rows remain inactive so existing reservation history stays intact.
@@ -368,16 +377,16 @@ WHERE `sku` IN ('BK-GENMATH', 'BK-EARTHSCI', 'BK-LIT21', 'BK-UCSP', 'BK-PHILO');
 INSERT INTO `product_variants`
   (`product_id`, `variant_sku`, `size`, `color`, `price_override`, `is_active`)
 SELECT `id`, CONCAT(`sku`, '-S'), 'Small', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-GIRLS','UNI-ELEM-BOYS','UNI-JHS-GIRLS','UNI-JHS-BOYS','UNI-SHS-GIRLS','UNI-SHS-BOYS','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-KINDER-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-M'), 'Medium', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-GIRLS','UNI-ELEM-BOYS','UNI-JHS-GIRLS','UNI-JHS-BOYS','UNI-SHS-GIRLS','UNI-SHS-BOYS','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-KINDER-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-L'), 'Large', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-GIRLS','UNI-ELEM-BOYS','UNI-JHS-GIRLS','UNI-JHS-BOYS','UNI-SHS-GIRLS','UNI-SHS-BOYS','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-KINDER-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 UNION ALL
 SELECT `id`, CONCAT(`sku`, '-XL'), 'XL', NULL, NULL, 1 FROM `products`
- WHERE `sku` IN ('UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-COL-SET')
+ WHERE `sku` IN ('UNI-ELEM-GIRLS','UNI-ELEM-BOYS','UNI-JHS-GIRLS','UNI-JHS-BOYS','UNI-SHS-GIRLS','UNI-SHS-BOYS','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05','TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09','PE-KINDER-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET')
 ON DUPLICATE KEY UPDATE
   `product_id` = VALUES(`product_id`),
   `size` = VALUES(`size`),
@@ -424,9 +433,9 @@ SELECT `pv`.`id`, 20, 0, 5
 FROM `product_variants` `pv`
 JOIN `products` `p` ON `p`.`id` = `pv`.`product_id`
 WHERE `p`.`sku` IN (
-  'UNI-ELEM-REG','UNI-JHS-REG','UNI-SHS-REG','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05',
+  'UNI-ELEM-GIRLS','UNI-ELEM-BOYS','UNI-JHS-GIRLS','UNI-JHS-BOYS','UNI-SHS-GIRLS','UNI-SHS-BOYS','UNI-COL-REG','UNI-COL-02','UNI-COL-03','UNI-COL-05',
   'TYPEB-COL-02','TYPEB-COL-03','TYPEB-COL-06','TYPEB-COL-08','TYPEB-COL-09',
-  'PE-COL-SET',
+  'PE-KINDER-SET','PE-JHS-SET','PE-SHS-SET','PE-COL-SET',
   'BK-K1-SET','BK-K2-SET','BK-G01-SET','BK-G02-SET','BK-G03-SET','BK-G04-SET','BK-G05-SET','BK-G06-SET',
   'BK-G07-SET','BK-G08-SET','BK-G09-SET','BK-G10-SET','BK-G11-SET','BK-G12-SET'
 )

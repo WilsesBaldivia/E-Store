@@ -19,9 +19,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('[data-catalog-form]').forEach((form) => {
     const catalogCard = form.closest('.catalog-group-card');
+    const catalogGroup = catalogCard?.dataset.catalogGroup || '';
     const levelSelect = form.querySelector('[data-level-select]');
     const departmentSelect = form.querySelector('[data-department-select]');
     const departmentField = form.querySelector('[data-department-field]');
+    const departmentOptions = departmentSelect
+      ? Array.from(departmentSelect.querySelectorAll('option[data-level]'))
+      : [];
     const itemSelect = form.querySelector('[data-item-select]');
     const price = form.querySelector('[data-product-price]');
     const addButton = form.querySelector('.add-cart');
@@ -119,10 +123,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const renderItems = () => {
       const level = levelSelect.value;
-      const departmentLevel = departmentSelect?.dataset.departmentLevel || '';
-      const needsDepartment = Boolean(departmentSelect && (!departmentLevel || departmentLevel === level));
+      const applicableDepartments = departmentOptions.filter((option) => option.dataset.level === 'all' || option.dataset.level === level);
+      const needsDepartment = Boolean(departmentSelect && applicableDepartments.length);
       if (departmentSelect) {
-        if (!needsDepartment) departmentSelect.value = '';
+        departmentOptions.forEach((option) => {
+          const isApplicable = applicableDepartments.includes(option);
+          option.hidden = !isApplicable;
+          option.disabled = !isApplicable;
+        });
+        if (!needsDepartment || !applicableDepartments.some((option) => option.value === departmentSelect.value)) {
+          departmentSelect.value = '';
+        }
         departmentSelect.disabled = !needsDepartment;
         departmentSelect.required = needsDepartment;
       }
@@ -152,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
       price.textContent = 'Select an option';
       if (bookGallery) {
         renderBookGallery();
+        showImage('');
+      } else if (catalogGroup === 'pe') {
         showImage('');
       } else {
         showImage(matching.find((item) => item.image)?.image || '');

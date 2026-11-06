@@ -171,7 +171,7 @@ if ($view === 'home') {
     $template = str_replace('href="index.css"', 'href="assets/front.css?v=' . $styleVersion . '"', $template);
     $template = str_replace('src="assets/front.js"', 'src="assets/front.js?v=' . $scriptVersion . '"', $template);
     if (current_user() && current_user()['role'] === 'student') {
-        $template = str_replace('href="login">Log in', 'href="student">Student portal', $template);
+        $template = str_replace('href="login">Student login', 'href="student">Student portal', $template);
     }
     echo $template;
     exit;

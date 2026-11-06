@@ -51,6 +51,31 @@ document.addEventListener('DOMContentLoaded', () => {
       updateGenderField();
     }
 
+    if (categorySelect) {
+      const academicLevel = productForm.querySelector('select[name="academic_level"]');
+      const academicLabel = academicLevel?.previousElementSibling;
+      const sizeField = productForm.querySelector('input[name="size"]');
+      const sizeLabel = sizeField?.previousElementSibling;
+      const updateBookFields = () => {
+        const categoryName = categorySelect.options[categorySelect.selectedIndex]?.textContent.trim().toLowerCase() || '';
+        const isBook = categoryName.includes('book');
+        if (academicLevel) {
+          academicLevel.hidden = isBook;
+          academicLevel.disabled = isBook;
+          if (isBook) academicLevel.value = 'all';
+        }
+        if (academicLabel?.tagName === 'LABEL') academicLabel.hidden = isBook;
+        if (sizeField) {
+          sizeField.hidden = isBook;
+          sizeField.disabled = isBook;
+          if (isBook) sizeField.value = '';
+        }
+        if (sizeLabel?.tagName === 'LABEL') sizeLabel.hidden = isBook;
+      };
+      categorySelect.addEventListener('change', updateBookFields);
+      updateBookFields();
+    }
+
     const descriptionField = productForm.querySelector('textarea[name="description"]');
     if (descriptionField && !productForm.querySelector('[name="product_image"]')) {
       const pictureLabel = document.createElement('label');
