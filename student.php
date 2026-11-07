@@ -220,10 +220,28 @@ foreach ($productImageRows as $productImageRow) {
 }
 
 $catalogGroups = [
-    'uniform' => [
-        'name' => 'School Uniform',
+    'uniform_boys' => [
+        'name' => "Boys' School Uniform",
         'category' => 'Uniforms',
-        'description' => 'Choose your academic level and uniform size.',
+        'description' => "Choose the boys' uniform for your academic level.",
+        'icon' => 'bx-t-shirt',
+        'item_label' => 'Uniform size',
+        'options' => [],
+        'image_path' => null,
+    ],
+    'uniform_girls' => [
+        'name' => "Girls' School Uniform",
+        'category' => 'Uniforms',
+        'description' => "Choose the girls' uniform for your academic level.",
+        'icon' => 'bx-t-shirt',
+        'item_label' => 'Uniform size',
+        'options' => [],
+        'image_path' => null,
+    ],
+    'uniform' => [
+        'name' => 'College School Uniform',
+        'category' => 'Uniforms',
+        'description' => 'Choose the official uniform for your College department.',
         'icon' => 'bx-t-shirt',
         'item_label' => 'Uniform size',
         'options' => [],
@@ -291,7 +309,15 @@ foreach ($productRows as $row) {
         if (str_starts_with($row['sku'], 'TYPEB-')) {
             $groupKey = 'typeb';
         } else {
-            $groupKey = str_starts_with($row['sku'], 'PE-') || stripos($row['name'], 'P.E.') !== false ? 'pe' : 'uniform';
+            if (str_starts_with($row['sku'], 'PE-') || stripos($row['name'], 'P.E.') !== false) {
+                $groupKey = 'pe';
+            } elseif ($row['academic_level'] !== 'college' && preg_match('/\bBoys\b/i', $row['name'])) {
+                $groupKey = 'uniform_boys';
+            } elseif ($row['academic_level'] !== 'college' && preg_match('/\bGirls\b/i', $row['name'])) {
+                $groupKey = 'uniform_girls';
+            } else {
+                $groupKey = 'uniform';
+            }
         }
     } else {
         continue;
@@ -419,17 +445,14 @@ if ($view === 'voucher' && isset($_GET['code'])) {
             } elseif ($groupKey === 'uniform') {
                 foreach ($group['options'] as $option) {
                     $choiceKey = $option['academic_level'] . '|' . $option['product_name'];
-                    $choiceLabel = preg_replace('/^(?:Elementary|Junior High|Senior High|JHS|SHS|College) School Uniform\s*-\s*/i', '', $option['product_name']);
-                    if (strcasecmp($choiceLabel, 'Girls') === 0) $choiceLabel = 'Girl';
-                    if (strcasecmp($choiceLabel, 'Boys') === 0) $choiceLabel = 'Boy';
                     $departmentChoices[$choiceKey] = [
                         'value' => $option['product_name'],
-                        'label' => $choiceLabel,
+                        'label' => preg_replace('/^College School Uniform\s*-\s*/i', '', $option['product_name']),
                         'level' => $option['academic_level'],
                     ];
                 }
             }
-            $initialImagePath = in_array($groupKey, ['typeb', 'books', 'pe'], true) ? null : $group['image_path'];
+            $initialImagePath = in_array($groupKey, ['typeb', 'books'], true) ? null : $group['image_path'];
             $levelBadge = implode(' · ', array_map(static fn (string $level): string => strtoupper(str_replace(['Junior High School', 'Senior High School'], ['JHS', 'SHS'], $level)), $selectableLevels));
         ?>
           <article class="product-card catalog-group-card" data-catalog-group="<?= h($groupKey) ?>">
@@ -466,9 +489,9 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                 <?php endif; ?>
                 <?php if ($departmentChoices): ?>
                   <div class="catalog-field" data-department-field hidden>
-                    <label for="department-<?= h($groupKey) ?>"><?= $groupKey === 'uniform' ? 'Uniform choice' : 'Department' ?></label>
+                    <label for="department-<?= h($groupKey) ?>">Department</label>
                     <select id="department-<?= h($groupKey) ?>" data-department-select disabled required>
-                      <option value=""><?= $groupKey === 'uniform' ? 'Boy or Girl' : 'Choose department' ?></option>
+                      <option value="">Choose department</option>
                       <?php foreach ($departmentChoices as $departmentChoice): ?><option value="<?= h($departmentChoice['value']) ?>" data-level="<?= h($departmentChoice['level']) ?>"><?= h($departmentChoice['label']) ?></option><?php endforeach; ?>
                     </select>
                   </div>

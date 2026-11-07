@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const photo = imageFrame?.querySelector('[data-product-photo]');
     const icon = imageFrame?.querySelector('[data-product-icon]');
     const zoomButton = imageFrame?.querySelector('[data-product-zoom]');
+    const initialImage = photo?.getAttribute('src') || '';
     const bookGallery = catalogCard?.querySelector('[data-book-gallery]');
     const bookGalleryTitle = bookGallery?.querySelector('[data-book-gallery-title]');
     const bookGalleryCount = bookGallery?.querySelector('[data-book-gallery-count]');
@@ -121,7 +122,27 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     };
 
+    const updateSelectedItem = () => {
+      const selected = itemSelect.selectedOptions[0];
+      const hasSelection = Boolean(selected?.value);
+      const selectedItem = hasSelection ? options.find((item) => item.value === selected.value) : null;
+      addButton.disabled = !hasSelection;
+      addButton.textContent = hasSelection ? 'Add to cart' : 'Select options';
+      price.textContent = hasSelection ? `₱${Number(selected.dataset.price).toFixed(2)}` : 'Select an option';
+      if (bookGallery) renderBookGallery(selectedItem);
+      if (selectedItem?.images?.length) {
+        showImage(selectedItem.images[0].path, selectedItem.images[0].alt || selectedItem.department);
+      } else if (hasSelection) {
+        showImage(selected.dataset.image || initialImage, selectedItem?.department || '');
+      } else if (catalogGroup === 'books') {
+        showImage('');
+      } else {
+        showImage(initialImage);
+      }
+    };
+
     const renderItems = () => {
+      const previousValue = itemSelect.value;
       const level = levelSelect.value;
       const applicableDepartments = departmentOptions.filter((option) => option.dataset.level === 'all' || option.dataset.level === level);
       const needsDepartment = Boolean(departmentSelect && applicableDepartments.length);
@@ -158,39 +179,21 @@ document.addEventListener('DOMContentLoaded', () => {
         itemSelect.add(option);
       });
       itemSelect.disabled = !level || awaitingDepartment || matching.length === 0;
-      addButton.disabled = true;
-      addButton.textContent = matching.length || !level || awaitingDepartment ? 'Select options' : 'Not available';
-      price.textContent = 'Select an option';
-      if (bookGallery) {
-        renderBookGallery();
-        showImage('');
-      } else if (catalogGroup === 'pe') {
-        showImage(level ? matching.find((item) => item.image)?.image || '' : '');
-      } else {
-        showImage(matching.find((item) => item.image)?.image || '');
+      if (!itemSelect.disabled) {
+        const selectableOptions = Array.from(itemSelect.options).filter((option) => option.value && !option.disabled);
+        const retainedOption = selectableOptions.find((option) => option.value === previousValue);
+        const automaticOption = retainedOption || selectableOptions[0];
+        if (automaticOption) itemSelect.value = automaticOption.value;
       }
+      updateSelectedItem();
+      if (!matching.length && level && !awaitingDepartment) addButton.textContent = 'Not available';
     };
 
     levelSelect.addEventListener('input', renderItems);
     levelSelect.addEventListener('change', renderItems);
     departmentSelect?.addEventListener('input', renderItems);
     departmentSelect?.addEventListener('change', renderItems);
-    itemSelect.addEventListener('change', () => {
-      const selected = itemSelect.selectedOptions[0];
-      const hasSelection = Boolean(selected?.value);
-      addButton.disabled = !hasSelection;
-      addButton.textContent = hasSelection ? 'Add to cart' : 'Select options';
-      price.textContent = hasSelection ? `₱${Number(selected.dataset.price).toFixed(2)}` : 'Select an option';
-      const selectedItem = hasSelection ? options.find((item) => item.value === selected.value) : null;
-      if (bookGallery) renderBookGallery(selectedItem);
-      if (selectedItem?.images?.length) {
-        showImage(selectedItem.images[0].path, selectedItem.images[0].alt || selectedItem.department);
-      } else if (hasSelection) {
-        showImage(selected.dataset.image || '', selectedItem?.department || '');
-      } else if (bookGallery) {
-        showImage('');
-      }
-    });
+    itemSelect.addEventListener('change', updateSelectedItem);
     renderItems();
     window.addEventListener('pageshow', renderItems);
     window.setTimeout(renderItems, 0);
