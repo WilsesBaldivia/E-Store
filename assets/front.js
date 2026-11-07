@@ -55,11 +55,16 @@ document.addEventListener('DOMContentLoaded', () => {
       })(),
       label: option.textContent.trim(),
     }));
+    const croppedImageCache = new Map();
+    let imageRequestId = 0;
 
-    const showImage = (source, altText = '') => {
+    const showImage = (source, altText = '', cropSide = '') => {
       if (!photo || !icon) return;
-      if (source) {
+      const requestId = ++imageRequestId;
+      const displayImage = (displaySource) => {
+        if (requestId !== imageRequestId) return;
         const revealPhoto = () => {
+          if (requestId !== imageRequestId) return;
           photo.hidden = false;
           icon.hidden = true;
           if (zoomButton) zoomButton.disabled = false;
@@ -69,14 +74,48 @@ document.addEventListener('DOMContentLoaded', () => {
         if (zoomButton) zoomButton.disabled = true;
         photo.onload = revealPhoto;
         photo.onerror = () => {
+          if (requestId !== imageRequestId) return;
           photo.removeAttribute('src');
           photo.hidden = true;
           icon.hidden = false;
           if (zoomButton) zoomButton.disabled = true;
         };
         if (altText) photo.alt = altText;
-        photo.src = source;
+        photo.src = displaySource;
         if (photo.complete && photo.naturalWidth > 0) revealPhoto();
+      };
+      if (source) {
+        if (!cropSide) {
+          displayImage(source);
+          return;
+        }
+        const cacheKey = `${source}|${cropSide}`;
+        if (croppedImageCache.has(cacheKey)) {
+          displayImage(croppedImageCache.get(cacheKey));
+          return;
+        }
+        const sourceImage = new Image();
+        sourceImage.onload = () => {
+          if (requestId !== imageRequestId) return;
+          const halfWidth = Math.floor(sourceImage.naturalWidth / 2);
+          const canvas = document.createElement('canvas');
+          canvas.width = halfWidth;
+          canvas.height = sourceImage.naturalHeight;
+          const context = canvas.getContext('2d');
+          if (!context) {
+            displayImage(source);
+            return;
+          }
+          const sourceX = cropSide === 'right' ? sourceImage.naturalWidth - halfWidth : 0;
+          context.fillStyle = '#fff';
+          context.fillRect(0, 0, halfWidth, sourceImage.naturalHeight);
+          context.drawImage(sourceImage, sourceX, 0, halfWidth, sourceImage.naturalHeight, 0, 0, halfWidth, sourceImage.naturalHeight);
+          const croppedSource = canvas.toDataURL('image/jpeg', 0.92);
+          croppedImageCache.set(cacheKey, croppedSource);
+          displayImage(croppedSource);
+        };
+        sourceImage.onerror = () => displayImage(source);
+        sourceImage.src = source;
       } else {
         photo.onload = null;
         photo.onerror = null;
@@ -133,7 +172,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (selectedItem?.images?.length) {
         showImage(selectedItem.images[0].path, selectedItem.images[0].alt || selectedItem.department);
       } else if (hasSelection) {
-        showImage(selected.dataset.image || initialImage, selectedItem?.department || '');
+        const uniformCrop = catalogGroup === 'uniform'
+          ? (/\bGirls\b/i.test(selectedItem?.department || '') ? 'right' : 'left')
+          : '';
+        showImage(selected.dataset.image || initialImage, selectedItem?.department || '', uniformCrop);
       } else if (catalogGroup === 'books') {
         showImage('');
       } else {
