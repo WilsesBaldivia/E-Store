@@ -152,7 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
           option.hidden = !isApplicable;
           option.disabled = !isApplicable;
         });
-        if (!needsDepartment || !applicableDepartments.some((option) => option.value === departmentSelect.value)) {
+        const hasApplicableSelection = applicableDepartments.some((option) => option.value === departmentSelect.value);
+        if (!needsDepartment) {
+          departmentSelect.value = '';
+        } else if (!hasApplicableSelection && catalogGroup === 'uniform') {
+          departmentSelect.value = applicableDepartments[0]?.value || '';
+        } else if (!hasApplicableSelection) {
           departmentSelect.value = '';
         }
         departmentSelect.disabled = !needsDepartment;
