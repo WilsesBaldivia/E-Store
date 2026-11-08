@@ -129,3 +129,11 @@ form:has(input[name="action"][value="product"]) input[name="name"],form:has(inpu
   .login-message .admin-brand{display:flex;margin:0}
   .login-card{width:100%;margin:0 auto;padding:30px 23px;border-radius:20px}
 }
+
+/* Keep mobile navigation and logout as two separate, visible controls. */
+.admin-topbar-logout button i{display:none}
+.admin-topbar-logout button:before{content:"";width:20px;height:20px;flex:0 0 20px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3Zm5.59 4.59L17 9l2 2h-9v2h9l-2 2-1.41 1.41L20.17 12l-4.58-4.41Z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h5v-2H5V5h5V3Zm5.59 4.59L17 9l2 2h-9v2h9l-2 2-1.41 1.41L20.17 12l-4.58-4.41Z'/%3E%3C/svg%3E") center/contain no-repeat}
+@media(max-width:760px){
+  .admin-account-actions{top:18px;right:74px;bottom:auto}
+  .admin-topbar-logout button{width:48px;min-width:48px;min-height:48px;height:48px;padding:0}
+}

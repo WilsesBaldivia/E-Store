@@ -444,7 +444,7 @@ if ($view === 'voucher' && isset($_GET['code'])) {
                     ];
                 }
             }
-            $initialImagePath = in_array($groupKey, ['typeb', 'books'], true) ? null : $group['image_path'];
+            $initialImagePath = in_array($groupKey, ['typeb', 'books', 'pe'], true) ? null : $group['image_path'];
             $levelBadge = implode(' · ', array_map(static fn (string $level): string => strtoupper(str_replace(['Junior High School', 'Senior High School'], ['JHS', 'SHS'], $level)), $selectableLevels));
         ?>
           <article class="product-card catalog-group-card" data-catalog-group="<?= h($groupKey) ?>">
